@@ -71,7 +71,6 @@ function CreativeProductCard({ product, onEdit, onDelete, onAdjustStock, onView 
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
         boxShadow: hovered 
           ? `0 30px 60px -12px ${accentColor}25` 
           : '0 4px 20px -5px rgba(0,0,0,0.05)',
@@ -79,100 +78,84 @@ function CreativeProductCard({ product, onEdit, onDelete, onAdjustStock, onView 
       }}
       onClick={() => onView(product)}
     >
-      {/* Background Glow */}
       <div style={{
-        position: 'absolute',
-        top: '-40px',
-        right: '-40px',
-        width: '140px',
-        height: '140px',
-        background: `radial-gradient(circle, ${accentColor}15 0%, transparent 70%)`,
-        borderRadius: '50%',
-        transition: 'all 0.5s',
-        transform: hovered ? 'scale(2)' : 'scale(1)',
-      }} />
-
-      {/* Top: Icon + Status */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
-        <div style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '20px',
-          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          boxShadow: `0 12px 24px ${accentColor}40`,
-          transform: hovered ? 'rotate(-8deg) scale(1.1)' : 'none',
-          transition: 'all 0.3s'
-        }}>
-          <CatIcon size={32} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+        margin: '-24px -24px 24px -24px',
+        height: product.image ? '180px' : '100px',
+        background: product.image ? `url(${product.image}) center/cover` : `linear-gradient(135deg, ${accentColor}15 0%, transparent 100%)`,
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '24px',
+        alignItems: 'flex-start'
+      }}>
+        {product.image && <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%)' }} />}
+        
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '8px' }}>
           <div style={{
             fontSize: '10px',
             fontWeight: 900,
             color: 'white',
             background: accentColor === CAT_COLORS['Solar Systems'] ? '#0f172a' : accentColor,
-            padding: '4px 12px',
+            padding: '6px 14px',
             borderRadius: '99px',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
           }}>
             {product.category.toUpperCase()}
           </div>
-          <div style={{
-            fontSize: '10px',
-            fontWeight: 800,
-            color: product.status === 'In Stock' ? '#10b981' : product.status === 'Low Stock' ? '#f59e0b' : '#ef4444',
-            background: 'white',
-            padding: '4px 10px',
-            borderRadius: '99px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
-            {product.status.toUpperCase()}
-          </div>
+        </div>
+
+        <div style={{
+          position: 'relative', zIndex: 1,
+          fontSize: '10px',
+          fontWeight: 800,
+          color: product.status === 'In Stock' ? '#10b981' : product.status === 'Low Stock' ? '#f59e0b' : '#ef4444',
+          background: 'white',
+          padding: '6px 12px',
+          borderRadius: '99px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
+          {product.status.toUpperCase()}
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
-        <h3 style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.2 }}>{product.name}</h3>
-        <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, opacity: 0.8 }}>{product.description.slice(0, 70)}...</p>
-      </div>
-
-      {/* Bento Stats */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '1fr 1fr', 
-        gap: '12px',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '22px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>PRICE</div>
-          <div style={{ fontSize: '18px', fontWeight: 950, color: '#0f172a' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginRight: '2px' }}>SAR</span>
-            {product.price.toLocaleString()}
-          </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
+          <h3 style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.2 }}>{product.name}</h3>
+          <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 500, margin: 0, opacity: 0.8, lineHeight: 1.5 }}>{product.description.slice(0, 80)}...</p>
         </div>
-        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '22px', border: '1px solid #f1f5f9' }}>
-          <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>INVENTORY</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
-            <span style={{ fontSize: '20px', fontWeight: 950, color: product.stock <= 5 ? '#ef4444' : '#0f172a' }}>{product.stock}</span>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', paddingBottom: '3px' }}>UNITS</span>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr', 
+          gap: '12px',
+          marginTop: 'auto'
+        }}>
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '22px', border: '1px solid #f1f5f9' }}>
+            <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>PRICE</div>
+            <div style={{ fontSize: '18px', fontWeight: 950, color: '#0f172a' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginRight: '2px' }}>SAR</span>
+              {product.price.toLocaleString()}
+            </div>
           </div>
-          <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', marginTop: '8px', overflow: 'hidden' }}>
-            <div style={{ 
-              width: `${Math.min((product.stock/50)*100, 100)}%`, 
-              height: '100%', 
-              background: product.stock <= 5 ? '#ef4444' : accentColor,
-              borderRadius: '2px'
-            }} />
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '22px', border: '1px solid #f1f5f9' }}>
+            <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>INVENTORY</div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
+              <span style={{ fontSize: '20px', fontWeight: 950, color: product.stock <= 5 ? '#ef4444' : '#0f172a' }}>{product.stock}</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', paddingBottom: '3px' }}>UNITS</span>
+            </div>
+            <div style={{ width: '100%', height: '4px', background: '#e2e8f0', borderRadius: '2px', marginTop: '8px', overflow: 'hidden' }}>
+              <div style={{ 
+                width: `${Math.min((product.stock/50)*100, 100)}%`, 
+                height: '100%', 
+                background: product.stock <= 5 ? '#ef4444' : accentColor,
+                borderRadius: '2px'
+              }} />
+            </div>
           </div>
         </div>
       </div>
@@ -196,7 +179,7 @@ function CreativeProductCard({ product, onEdit, onDelete, onAdjustStock, onView 
         padding: hovered ? '0 24px' : '0'
       }} onClick={e => e.stopPropagation()}>
         <button className="btn btn-primary btn-sm" style={{ flex: 1, borderRadius: '16px', height: '44px', gap: '8px' }} onClick={() => onView(product)}>
-          <Eye size={16} /> Details
+          <Eye size={16} /> View Details
         </button>
         <button className="btn btn-ghost btn-sm" style={{ width: '44px', height: '44px', borderRadius: '16px', padding: 0 }} onClick={e => onEdit(product, e)}>
           <Pencil size={16} />
@@ -206,6 +189,107 @@ function CreativeProductCard({ product, onEdit, onDelete, onAdjustStock, onView 
         </button>
         <button className="btn btn-danger btn-sm" style={{ width: '44px', height: '44px', borderRadius: '16px', padding: 0 }} onClick={e => onDelete(product, e)}>
           <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function CreativeOrderCard({ order, onEdit, onView }) {
+  const [hovered, setHovered] = useState(false)
+  const statusColor = order.status === 'Delivered' ? '#10b981' : order.status === 'Processing' ? '#f59e0b' : order.status === 'Shipped' ? '#3b82f6' : order.status === 'Cancelled' ? '#ef4444' : '#64748b'
+
+  return (
+    <div 
+      className="glass-card"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative',
+        borderRadius: '32px',
+        padding: '24px',
+        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        transform: hovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        boxShadow: hovered 
+          ? `0 30px 60px -12px ${statusColor}25` 
+          : '0 4px 20px -5px rgba(0,0,0,0.05)',
+        overflow: 'hidden'
+      }}
+      onClick={() => onView(order)}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+        <div style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '20px',
+          background: `${statusColor}15`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: statusColor,
+          transform: hovered ? 'rotate(-8deg) scale(1.1)' : 'none',
+          transition: 'all 0.3s'
+        }}>
+          <Truck size={28} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+          <div style={{
+            fontSize: '10px',
+            fontWeight: 900,
+            color: 'white',
+            background: statusColor,
+            padding: '4px 12px',
+            borderRadius: '99px',
+            letterSpacing: '0.5px'
+          }}>
+            {order.status.toUpperCase()}
+          </div>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>
+            <Calendar size={10} style={{ marginRight:'4px' }} /> {order.date.toUpperCase()}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 950, color: '#0f172a', margin: '0 0 4px 0', fontFamily: 'monospace' }}>{order.id}</h3>
+        <p style={{ fontSize: '14px', color: '#64748b', fontWeight: 800, margin: 0 }}>{order.client}</p>
+        <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600, margin: '4px 0 0 0' }}>{order.items.length} Items • <CreditCard size={12} style={{verticalAlign:'middle', margin:'-2px 2px 0 2px'}} /> {order.paymentType}</p>
+      </div>
+
+      <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '22px', border: '1px solid #f1f5f9' }}>
+        <div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>ORDER VALUATION</div>
+        <div style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginRight: '4px' }}>SAR</span>
+          {order.amount.toLocaleString()}
+        </div>
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(12px)',
+        height: hovered ? '70px' : '0px',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '12px',
+        opacity: hovered ? 1 : 0,
+        zIndex: 2,
+        padding: hovered ? '0 24px' : '0'
+      }} onClick={e => e.stopPropagation()}>
+        <button className="btn btn-primary btn-sm" style={{ flex: 1, borderRadius: '16px', height: '44px', gap: '8px' }} onClick={() => onView(order)}>
+          <Eye size={16} /> View Details
+        </button>
+        <button className="btn btn-ghost btn-sm" style={{ flex: 1, borderRadius: '16px', height: '44px', gap: '8px', background:'#f8fafc' }} onClick={e => { e.stopPropagation(); onEdit(order, e) }}>
+          <Pencil size={16} /> Edit
         </button>
       </div>
     </div>
@@ -263,7 +347,7 @@ export default function Sales() {
   const [orderStatusFilter, setOrderStatusFilter] = useState('All')
   const [offerStatusFilter, setOfferStatusFilter] = useState('All')
   const [viewMode, setViewMode]     = useState('grid')
-  const [form, setForm] = useState({ name:'', category:'Solar Systems', price:'', stock:'', status:'In Stock', description:'' })
+  const [form, setForm] = useState({ name:'', category:'Solar Systems', price:'', stock:'', status:'In Stock', description:'', image:'', title:'', discount:'', type:'', appliesTo:'', validTo:'' })
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -289,13 +373,13 @@ export default function Sales() {
   const openEdit = (item, e) => {
     e?.stopPropagation()
     setSelected(item)
-    setForm({ name:item.name, category:item.category, price:item.price, stock:item.stock, status:item.status, description:item.description })
+    setForm({ name:item.name, category:item.category, price:item.price, stock:item.stock, status:item.status, description:item.description, image:item.image||'' })
     setModal('product-edit')
   }
 
   const openAdd = () => {
     setSelected(null)
-    setForm({ name:'', category:'Solar Systems', price:'', stock:'', status:'In Stock', description:'' })
+    setForm({ name:'', category:'Solar Systems', price:'', stock:'', status:'In Stock', description:'', image:'' })
     setModal('product-add')
   }
 
@@ -517,14 +601,14 @@ export default function Sales() {
                             width:'48px', 
                             height:'48px', 
                             borderRadius:'16px', 
-                            background: CAT_COLORS[p.category] + '15',
+                            background: p.image ? `url(${p.image}) center/cover` : CAT_COLORS[p.category] + '15',
                             color: CAT_COLORS[p.category],
                             display:'flex',
                             alignItems:'center',
                             justifyContent:'center',
                             boxShadow: `0 8px 16px ${CAT_COLORS[p.category]}10`
                           }}>
-                            {(() => { const Icon = CAT_ICON[p.category] || Package; return <Icon size={24} />; })()}
+                            {!p.image && (() => { const Icon = CAT_ICON[p.category] || Package; return <Icon size={24} />; })()}
                           </div>
                           <div>
                             <div style={{ fontWeight:800, fontSize:'15px', color:'#0f172a' }}>{p.name}</div>
@@ -621,80 +705,97 @@ export default function Sales() {
             ))}
           </div>
 
-          <div className="table-container" style={{ borderRadius:'30px', border:'1px solid #e2e8f0', background:'white' }}>
-            <table className="table">
-              <thead>
-                <tr style={{ background:'#f8fafc' }}>
-                  <th style={{ padding:'24px', borderRadius:'30px 0 0 0' }}>ORDER HIERARCHY</th>
-                  <th>CLIENT IDENTITY</th>
-                  <th>LOGISTICS STATUS</th>
-                  <th>VALUATION</th>
-                  <th>PAYMENT</th>
-                  <th style={{ borderRadius:'0 30px 0 0' }}>ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map(o => (
-                  <tr key={o.id} style={{ cursor:'pointer' }} onClick={() => { setSelected(o); setModal('order-view') }}>
-                    <td style={{ padding:'20px 24px' }}>
-                      <div>
-                        <div style={{ fontWeight:950, color:'#3b82f6', fontFamily:'monospace', fontSize:'15px', letterSpacing:'-0.5px' }}>{o.id}</div>
-                        <div style={{ fontSize:'11px', color:'#94a3b8', fontWeight:700, marginTop:'4px' }}>
-                          <Calendar size={10} style={{ marginRight:'4px' }} /> {o.date.toUpperCase()}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                        <div style={{ 
-                          width:'40px', 
-                          height:'40px', 
-                          borderRadius:'14px', 
-                          background:'#3b82f615', 
-                          color:'#3b82f6',
-                          display:'flex',
-                          alignItems:'center',
-                          justifyContent:'center',
-                          fontWeight:900,
-                          fontSize:'14px'
-                        }}>
-                          {o.client.split(' ').map(n=>n[0]).join('').slice(0,2)}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight:800, fontSize:'14px', color:'#0f172a' }}>{o.client}</div>
-                          <div style={{ fontSize:'11px', color:'#64748b', fontWeight:600 }}>PREMIUM PARTNER</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className={`badge badge-${ORDER_STATUS[o.status]}`} style={{ borderRadius:'10px', fontSize:'11px', fontWeight:900, padding:'6px 14px', textTransform:'uppercase' }}>
-                        {o.status}
-                      </div>
-                    </td>
-                    <td style={{ fontWeight:950, fontSize:'16px', color:'#0f172a' }}>
-                      <span style={{ fontSize:'12px', color:'#94a3b8', marginRight:'4px' }}>SAR</span>
-                      {o.amount.toLocaleString()}
-                    </td>
-                    <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:'12px', fontWeight:800, color:'#64748b' }}>
-                        <CreditCard size={14} /> {o.paymentType.toUpperCase()}
-                      </div>
-                    </td>
-                    <td onClick={e => e.stopPropagation()}>
-                      <div className="table-actions" style={{ gap:'10px' }}>
-                        <button className="btn btn-ghost btn-sm" style={{ width:'36px', height:'36px' }} onClick={() => { setSelected(o); setModal('order-view') }}>
-                          <Eye size={16} />
-                        </button>
-                        <button className="btn btn-primary btn-sm" style={{ height:'36px', borderRadius:'10px', padding:'0 16px', gap:'8px' }} onClick={() => toast(`Invoice ${o.id}`, 'success')}>
-                          <Plus size={14} /> INVOICE
-                        </button>
-                      </div>
-                    </td>
+          {viewMode === 'grid' ? (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(320px, 1fr))', gap:'32px' }}>
+              {filteredOrders.map((o, idx) => (
+                <div key={o.id} style={{ animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
+                  <CreativeOrderCard 
+                    order={o} 
+                    onView={order => { setSelected(order); setModal('order-view') }}
+                    onEdit={order => { setSelected(order); setForm({status:order.status}); setModal('order-edit') }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="table-container" style={{ borderRadius:'30px', border:'1px solid #e2e8f0', background:'white' }}>
+              <table className="table">
+                <thead>
+                  <tr style={{ background:'#f8fafc' }}>
+                    <th style={{ padding:'24px', borderRadius:'30px 0 0 0' }}>ORDER HIERARCHY</th>
+                    <th>CLIENT IDENTITY</th>
+                    <th>LOGISTICS STATUS</th>
+                    <th>VALUATION</th>
+                    <th>PAYMENT</th>
+                    <th style={{ borderRadius:'0 30px 0 0' }}>ACTIONS</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredOrders.map(o => (
+                    <tr key={o.id} style={{ cursor:'pointer' }} onClick={() => { setSelected(o); setModal('order-view') }}>
+                      <td style={{ padding:'20px 24px' }}>
+                        <div>
+                          <div style={{ fontWeight:950, color:'#3b82f6', fontFamily:'monospace', fontSize:'15px', letterSpacing:'-0.5px' }}>{o.id}</div>
+                          <div style={{ fontSize:'11px', color:'#94a3b8', fontWeight:700, marginTop:'4px' }}>
+                            <Calendar size={10} style={{ marginRight:'4px' }} /> {o.date.toUpperCase()}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                          <div style={{ 
+                            width:'40px', 
+                            height:'40px', 
+                            borderRadius:'14px', 
+                            background:'#3b82f615', 
+                            color:'#3b82f6',
+                            display:'flex',
+                            alignItems:'center',
+                            justifyContent:'center',
+                            fontWeight:900,
+                            fontSize:'14px'
+                          }}>
+                            {o.client.split(' ').map(n=>n[0]).join('').slice(0,2)}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight:800, fontSize:'14px', color:'#0f172a' }}>{o.client}</div>
+                            <div style={{ fontSize:'11px', color:'#64748b', fontWeight:600 }}>PREMIUM PARTNER</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={`badge badge-${ORDER_STATUS[o.status]}`} style={{ borderRadius:'10px', fontSize:'11px', fontWeight:900, padding:'6px 14px', textTransform:'uppercase' }}>
+                          {o.status}
+                        </div>
+                      </td>
+                      <td style={{ fontWeight:950, fontSize:'16px', color:'#0f172a' }}>
+                        <span style={{ fontSize:'12px', color:'#94a3b8', marginRight:'4px' }}>SAR</span>
+                        {o.amount.toLocaleString()}
+                      </td>
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:'12px', fontWeight:800, color:'#64748b' }}>
+                          <CreditCard size={14} /> {o.paymentType.toUpperCase()}
+                        </div>
+                      </td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <div className="table-actions" style={{ gap:'10px' }}>
+                          <button className="btn btn-ghost btn-sm" style={{ width:'36px', height:'36px' }} onClick={() => { setSelected(o); setModal('order-view') }}>
+                            <Eye size={16} />
+                          </button>
+                          <button className="btn btn-ghost btn-sm" style={{ width:'36px', height:'36px' }} onClick={() => { setSelected(o); setForm({status:o.status}); setModal('order-edit') }}>
+                            <Pencil size={16} />
+                          </button>
+                          <button className="btn btn-primary btn-sm" style={{ height:'36px', borderRadius:'10px', padding:'0 16px', gap:'8px' }} onClick={() => toast(`Invoice ${o.id}`, 'success')}>
+                            <Plus size={14} /> INVOICE
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
@@ -752,6 +853,19 @@ export default function Sales() {
                   {o.used} REDEEMED
                 </div>
               </div>
+
+              <div style={{ display:'flex', gap:'8px', marginTop:'16px' }}>
+                <button className="btn btn-ghost btn-sm" style={{ flex:1, borderRadius:'12px', background:'#f8fafc' }} onClick={() => { setSelected(o); setModal('offer-view'); }}>
+                  <Eye size={16} style={{ marginRight:'6px' }} /> View Details
+                </button>
+                <button className="btn btn-ghost btn-sm" style={{ flex:1, borderRadius:'12px', background:'#f8fafc' }} onClick={() => { 
+                  setSelected(o); 
+                  setForm({ title:o.title, discount:o.discount, type:o.type, appliesTo:o.appliesTo, validTo:o.validTo, status:o.status }); 
+                  setModal('offer-edit'); 
+                }}>
+                  <Pencil size={16} style={{ marginRight:'6px' }} /> Edit
+                </button>
+              </div>
             </div>
           ))}
           <div 
@@ -794,7 +908,7 @@ export default function Sales() {
         >
           <div style={{ display:'flex', gap:'32px', alignItems:'center', marginBottom: '32px' }}>
             <div style={{ 
-              background: CAT_COLORS[selected.category], 
+              background: selected.image ? `url(${selected.image}) center/cover` : CAT_COLORS[selected.category], 
               width: '100px', 
               height: '100px', 
               borderRadius: '32px',
@@ -805,7 +919,7 @@ export default function Sales() {
               boxShadow: `0 20px 40px ${CAT_COLORS[selected.category]}40`,
               transform: 'rotate(-5deg)'
             }}>
-              {(() => { const Icon = CAT_ICON[selected.category] || Package; return <Icon size={48} />; })()}
+              {!selected.image && (() => { const Icon = CAT_ICON[selected.category] || Package; return <Icon size={48} />; })()}
             </div>
             <div style={{ flex:1 }}>
               <h2 style={{ fontSize: '28px', fontWeight: 950, color: '#0f172a', marginBottom: '8px', letterSpacing: '-0.5px' }}>{selected.name}</h2>
@@ -915,6 +1029,10 @@ export default function Sales() {
               <label className="form-label" style={{ fontSize:'10px', letterSpacing:'1px' }}>INITIAL STOCK VOLUME</label>
               <input className="form-control" style={{ borderRadius:'16px', padding:'12px 18px', fontWeight:900 }} type="number" value={form.stock} onChange={e => setForm(f=>({...f,stock:e.target.value}))} />
             </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize:'10px', letterSpacing:'1px' }}>PRODUCT IMAGE URL</label>
+              <input className="form-control" style={{ borderRadius:'16px', padding:'12px 18px', fontWeight:600 }} value={form.image || ''} onChange={e => setForm(f=>({...f,image:e.target.value}))} placeholder="https://..." />
+            </div>
           </div>
           <div className="form-group" style={{ marginTop:'24px' }}>
             <label className="form-label" style={{ fontSize:'10px', letterSpacing:'1px' }}>TECHNICAL SPECIFICATIONS</label>
@@ -976,6 +1094,31 @@ export default function Sales() {
         </Modal>
       )}
 
+      {/* Order Edit Modal */}
+      {modal === 'order-edit' && selected && (
+        <Modal title={`Update Logistics Record ${selected.id}`} onClose={() => setModal(null)} size="sm"
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius:'16px' }} onClick={() => setModal(null)}>Cancel</button>
+              <button className="btn btn-primary" style={{ borderRadius:'16px', background:'#0f172a' }} onClick={() => { toast('Logistics updated', 'success'); setModal(null) }}>
+                Confirm Update
+              </button>
+            </>
+          }
+        >
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>LOGISTICS STATUS</label>
+            <select className="form-control form-select" style={{ borderRadius:'14px', fontWeight:600 }} value={form.status} onChange={e => setForm(f=>({...f,status:e.target.value}))}>
+              <option>Pending</option>
+              <option>Processing</option>
+              <option>Shipped</option>
+              <option>Delivered</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+        </Modal>
+      )}
+
       {/* Offer Add Modal */}
       {modal === 'offer-add' && (
         <Modal title="Initialize Promotional Campaign" onClose={() => setModal(null)}
@@ -1014,6 +1157,58 @@ export default function Sales() {
             <div className="form-group">
               <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>EXPIRATION DATE</label>
               <input className="form-control" style={{ borderRadius:'14px', padding:'12px 18px' }} type="date" />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Offer Edit Modal */}
+      {(modal === 'offer-edit' || modal === 'offer-view') && selected && (
+        <Modal title={modal==='offer-edit' ? "Update Promotional Campaign" : "Promotional Campaign Details"} onClose={() => setModal(null)}
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius:'16px' }} onClick={() => setModal(null)}>Close</button>
+              {modal === 'offer-edit' && (
+                <button className="btn btn-primary" style={{ borderRadius:'16px', background:'#0f172a', gap:'8px' }} onClick={() => { toast('Campaign updated', 'success'); setModal(null) }}>
+                  <Zap size={18} /> Save Changes
+                </button>
+              )}
+            </>
+          }
+        >
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>CAMPAIGN TITLE</label>
+            <input className="form-control" style={{ borderRadius:'16px', padding:'12px 18px', fontWeight:700 }} value={form.title} onChange={e => setForm(f=>({...f,title:e.target.value}))} disabled={modal==='offer-view'} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>DISCOUNT PROTOCOL</label>
+              <select className="form-control form-select" style={{ borderRadius:'14px', fontWeight:600 }} value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))} disabled={modal==='offer-view'}>
+                <option>Percentage</option>
+                <option>Fixed</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>VALUATION</label>
+              <input className="form-control" style={{ borderRadius:'14px', padding:'12px 18px', fontWeight:900 }} type="number" value={form.discount} onChange={e => setForm(f=>({...f,discount:e.target.value}))} disabled={modal==='offer-view'} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>TARGET ASSET GROUP</label>
+            <input className="form-control" style={{ borderRadius:'14px', padding:'12px 18px', fontWeight:600 }} value={form.appliesTo} onChange={e => setForm(f=>({...f,appliesTo:e.target.value}))} disabled={modal==='offer-view'} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>CAMPAIGN STATUS</label>
+              <select className="form-control form-select" style={{ borderRadius:'14px', fontWeight:600 }} value={form.status} onChange={e => setForm(f=>({...f,status:e.target.value}))} disabled={modal==='offer-view'}>
+                <option>Active</option>
+                <option>Upcoming</option>
+                <option>Expired</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize:'11px', letterSpacing:'1px' }}>EXPIRATION DATE</label>
+              <input className="form-control" style={{ borderRadius:'14px', padding:'12px 18px' }} type="date" value={form.validTo} onChange={e => setForm(f=>({...f,validTo:e.target.value}))} disabled={modal==='offer-view'} />
             </div>
           </div>
         </Modal>

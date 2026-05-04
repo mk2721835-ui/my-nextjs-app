@@ -12,6 +12,8 @@ import Reports from './pages/Reports'
 import Fleet from './pages/Fleet'
 import Login from './pages/Login'
 import TechnicianApp from './pages/TechnicianApp'
+import Chat from './pages/Chat'
+import Settings from './pages/Settings'
 import { users } from './data'
 
 // ── Toast Context ──────────────────────────────────────────────────────────────
@@ -58,6 +60,8 @@ const PAGE_LABELS = {
   inventory:    'Inventory',
   reports:      'Reports',
   fleet:        'Fleet / Vehicles',
+  chat:         'Communication Center',
+  settings:     'System Settings',
 }
 
 // ── Admin app ──────────────────────────────────────────────────────────────────
@@ -76,6 +80,8 @@ function AdminApp({ onLogout }) {
       case 'inventory':    return <Inventory />
       case 'reports':      return <Reports />
       case 'fleet':        return <Fleet />
+      case 'chat':         return <Chat />
+      case 'settings':     return <Settings />
       default:             return <Dashboard onNavigate={setPage} />
     }
   }
@@ -89,6 +95,7 @@ function AdminApp({ onLogout }) {
           onToggle={() => setCollapsed(c => !c)}
           collapsed={collapsed}
           onLogout={onLogout}
+          onNavigate={setPage}
         />
         <div className="page-wrap">
           {renderPage()}

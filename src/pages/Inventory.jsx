@@ -179,6 +179,9 @@ function CreativeInventoryCard({ part, onView, onAdjust, onRestock }) {
         opacity: hovered ? 1 : 0,
         zIndex: 2,
       }} onClick={e => e.stopPropagation()}>
+        <button onClick={() => onView(part)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800 }}>
+          <Eye size={16} /> DETAILS
+        </button>
         <button onClick={() => onAdjust(part)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800 }}>
           <Settings size={16} /> ADJUST
         </button>
@@ -309,12 +312,15 @@ export default function Inventory() {
           { label: 'Supply Risk', val: lowStock, icon: AlertTriangle, color: '#F59E0B' },
           { label: 'Critical Depletion', val: outStock, icon: XCircle, color: '#EF4444' },
         ].map((s, idx) => (
-          <div key={s.label} className="glass-card" style={{ padding: '24px', borderRadius: '28px', animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
+          <div key={s.label} className="glass-card" style={{ padding: '24px', borderRadius: '28px', animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both`, display: 'flex', flexDirection: 'column' }}>
             <div style={{ background: `${s.color}15`, color: s.color, width: '44px', height: '44px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
               <s.icon size={22} />
             </div>
             <div style={{ fontSize: '28px', fontWeight: 950, color: '#0f172a', letterSpacing: '-1px' }}>{s.val}</div>
-            <div style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', marginTop: '4px' }}>{s.label.toUpperCase()}</div>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', marginTop: '4px', flex: 1 }}>{s.label.toUpperCase()}</div>
+            <div style={{ marginTop: '16px', fontSize: '11px', fontWeight: 900, color: s.color, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', opacity: 0.8 }}>
+              VIEW DETAILS <ArrowRight size={12} />
+            </div>
           </div>
         ))}
       </div>

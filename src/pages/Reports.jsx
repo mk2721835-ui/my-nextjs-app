@@ -9,6 +9,7 @@ import {
   invoices, maintenanceRequests, installmentPlans,
 } from '../data'
 import { useToast } from '../App'
+import Modal from '../components/Modal'
 import { 
   TrendingUp, 
   Users, 
@@ -94,6 +95,8 @@ export default function Reports() {
   const [tab, setTab]         = useState('overview')
   const [dateRange, setDateRange] = useState('6months')
   const [viewMode, setViewMode] = useState('charts')
+  const [selectedTech, setSelectedTech] = useState(null)
+  const [selectedClient, setSelectedClient] = useState(null)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -361,8 +364,8 @@ export default function Reports() {
                 </div>
               </div>
 
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%', borderRadius: '14px', gap: '8px' }}>
-                View Full Dossier <ArrowRight size={14} />
+              <button className="btn btn-ghost btn-sm" style={{ width: '100%', borderRadius: '14px', gap: '8px' }} onClick={() => setSelectedTech(t)}>
+                View Details <ArrowRight size={14} />
               </button>
             </div>
           ))}
@@ -400,6 +403,9 @@ export default function Reports() {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Profit</span>
                     <span style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6' }}>SAR {m.profit.toLocaleString()}</span>
+                  </div>
+                  <div style={{ marginTop: '12px', fontSize: '10px', fontWeight: 900, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', opacity: 0.8 }}>
+                    VIEW DETAILS <ArrowRight size={12} />
                   </div>
                 </div>
               </div>
@@ -440,12 +446,81 @@ export default function Reports() {
 
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn btn-ghost btn-sm" style={{ flex: 1, borderRadius: '14px' }}><Mail size={14} /></button>
-                <button className="btn btn-ghost btn-sm" style={{ flex: 1, borderRadius: '14px' }}><Phone size={14} /></button>
-                <button className="btn btn-primary btn-sm" style={{ flex: 3, borderRadius: '14px', background: '#0f172a' }}>View Profile</button>
+                <button className="btn btn-ghost btn-sm" style={{ flex: 1, borderRadius: '14px' }} onClick={() => toast(`Calling ${c.phone}...`, 'success')}><Phone size={14} /></button>
+                <button className="btn btn-primary btn-sm" style={{ flex: 3, borderRadius: '14px', background: '#0f172a' }} onClick={() => {
+                  toast(`Accessing profile for ${c.name}... Redirecting to User Directory.`, 'info')
+                }}>View Details</button>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Technician Dossier Modal ── */}
+      {selectedTech && (
+        <Modal 
+          title="Technician Full Dossier" 
+          onClose={() => setSelectedTech(null)}
+          footer={<button className="btn btn-ghost" onClick={() => setSelectedTech(null)}>Close Dossier</button>}
+        >
+          <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: selectedTech.color || '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 900 }}>
+                  {selectedTech.initials}
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{selectedTech.name}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 900, color: selectedTech.color || '#3b82f6', letterSpacing: '1px' }}>{selectedTech.specialty || 'General Field Tech'}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '24px', fontWeight: 950, color: selectedTech.color || '#3b82f6' }}>{selectedTech.score || 0}%</div>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '1px' }}>PERFORMANCE SCORE</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>TOTAL COMPLETED JOBS</div>
+                <div style={{ fontSize: '24px', fontWeight: 950, color: '#1e293b' }}>{selectedTech.jobsDone || 0}</div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}><TrendingUp size={12}/> High Volume</div>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>REVENUE GENERATED</div>
+                <div style={{ fontSize: '24px', fontWeight: 950, color: '#10b981' }}>SAR {selectedTech.revenue ? selectedTech.revenue.toLocaleString() : 0}</div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}><Wallet size={12}/> Audited Value</div>
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Target size={14} /> FIELD METRICS
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Customer Rating</span>
+                  <span style={{ fontSize: '14px', fontWeight: 900, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Star size={14} fill="#f59e0b" /> {selectedTech.rating || 'N/A'}/5.0
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: '1px', background: '#f1f5f9' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Average Time/Job</span>
+                  <span style={{ fontSize: '14px', fontWeight: 900, color: '#1e293b' }}>{selectedTech.time || 'N/A'} Hours</span>
+                </div>
+                <div style={{ width: '100%', height: '1px', background: '#f1f5f9' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>Current Status</span>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: selectedTech.status === 'Online' ? '#10b981' : selectedTech.status === 'Busy' ? '#f59e0b' : '#64748b' }}>
+                    {selectedTech.status ? selectedTech.status.toUpperCase() : 'UNKNOWN'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </Modal>
       )}
     </div>
   )

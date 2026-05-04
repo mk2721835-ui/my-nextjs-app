@@ -127,7 +127,12 @@ function StatCard({ stat, onClick }) {
         zIndex: 1
       }}>
         <span>{stat.trend.split(' ').slice(1).join(' ')}</span>
-        {hovered && <ArrowRight size={14} style={{ animation: 'fadeIn 0.3s' }} />}
+        {hovered && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: stat.color, animation: 'fadeIn 0.3s' }}>
+            <span>VIEW DETAILS</span>
+            <ArrowRight size={14} />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -151,7 +156,7 @@ export default function Dashboard({ onNavigate }) {
     { label: 'Total Clients', value: clients, iconComp: Users, color: '#3B82F6', trend: '+3 this month', trendUp: true, page: 'users' },
     { label: 'Field Techs', value: `${onlineTech}/${techs.length}`, iconComp: Briefcase, color: '#10B981', trend: `${onlineTech} active now`, trendUp: true, page: 'users' },
     { label: 'Maintenance', value: openReqs, iconComp: Wrench, color: '#F59E0B', trend: `${newInvoices} new alerts`, trendUp: false, page: 'maintenance' },
-    { label: 'Net Revenue', value: `SAR ${fmt(84000)}`, iconComp: DollarSign, color: '#8B5CF6', trend: '+18% vs last', trendUp: true, page: 'accounting' },
+    { label: 'Net Revenue', value: `SAR ${fmt(totalRevenue)}`, iconComp: DollarSign, color: '#8B5CF6', trend: '+18% vs last', trendUp: true, page: 'accounting' },
     { label: 'SLA Success', value: '94%', iconComp: CheckCircle, color: '#06B6D4', trend: '↑ 2% this week', trendUp: true, page: 'reports' },
     { label: 'Active Fleet', value: `${vehicles.filter(v=>v.status==='In Use').length}/${vehicles.length}`, iconComp: Truck, color: '#F43F5E', trend: '3 operational units', trendUp: true, page: 'fleet' },
     { label: 'Overdue', value: `SAR ${fmt(overdueAmt)}`, iconComp: AlertTriangle, color: '#EF4444', trend: '1 critical alert', trendUp: false, page: 'installments' },

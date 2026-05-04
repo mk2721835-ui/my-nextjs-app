@@ -38,7 +38,6 @@ import {
 const STATUS_META = {
   Paid:    { color: '#10B981', icon: CheckCircle, label: 'Success' },
   Pending: { color: '#F59E0B', icon: Clock, label: 'Pending' },
-  Partial: { color: '#3B82F6', icon: Activity, label: 'Partial' },
   Overdue: { color: '#EF4444', icon: AlertCircle, label: 'Critical' }
 }
 
@@ -196,7 +195,7 @@ function CreativeInvoiceCard({ invoice, onView, onCollect }) {
         padding: hovered ? '0 24px' : '0'
       }} onClick={e => e.stopPropagation()}>
         <button className="btn btn-primary btn-sm" style={{ flex: 1, borderRadius: '16px', height: '40px', gap: '8px' }} onClick={() => onView(invoice)}>
-          <FileText size={16} /> Details
+          <FileText size={16} /> View Details
         </button>
         {invoice.status !== 'Paid' && (
           <button className="btn btn-success btn-sm" style={{ flex: 1, borderRadius: '16px', height: '40px', gap: '8px' }} onClick={() => onCollect(invoice)}>
@@ -224,7 +223,6 @@ export default function Accounting() {
 
   const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paid, 0)
   const totalPending = invoices.filter(i => i.status === 'Pending').reduce((s, i) => s + i.total, 0)
-  const totalPartial = invoices.filter(i => i.status === 'Partial').reduce((s, i) => s + (i.total - i.paid), 0)
   const totalOverdue = invoices.filter(i => i.status === 'Overdue').reduce((s, i) => s + (i.total - i.paid), 0)
 
   const filtered = invoices.filter(inv => {
@@ -306,7 +304,6 @@ export default function Accounting() {
         {[
           { label:'Capital Collected', val:totalRevenue, icon:CheckCircle, color:'#10B981', filter:'Paid' },
           { label:'Pending Revenue',  val:totalPending, icon:Clock, color:'#F59E0B', filter:'Pending' },
-          { label:'Unsettled Partial', val:totalPartial, icon:Activity, color:'#3B82F6', filter:'Partial' },
           { label:'Critical Overdue',  val:totalOverdue, icon:AlertCircle, color:'#EF4444', filter:'Overdue' },
         ].map((s, idx) => (
           <div key={s.label} 
@@ -329,6 +326,9 @@ export default function Accounting() {
             </div>
             <div style={{ fontSize: '24px', fontWeight: 950, color: '#0f172a', letterSpacing: '-0.5px' }}>SAR {s.val.toLocaleString()}</div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginTop: '4px' }}>{s.label}</div>
+            <div style={{ marginTop: '12px', fontSize: '10px', fontWeight: 900, color: s.color, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', opacity: 0.8 }}>
+              VIEW DETAILS <ArrowRight size={12} />
+            </div>
           </div>
         ))}
       </div>
@@ -394,7 +394,7 @@ export default function Accounting() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f1f5f9', padding: '6px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: 800, color: '#64748b', marginRight: '12px' }}>
               <Filter size={14} /> STATUS
             </div>
-            {['All', 'Paid', 'Pending', 'Partial', 'Overdue'].map(s => (
+            {['All', 'Paid', 'Pending', 'Overdue'].map(s => (
               <button key={s} 
                 onClick={() => setStatusFilter(s)}
                 style={{
@@ -493,7 +493,7 @@ export default function Accounting() {
                       <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{inv.id} · {inv.date}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: inv.paid === inv.total ? '#10b98115' : '#3b82f615', color: inv.paid === inv.total ? '#10b981' : '#3b82f6', padding: '6px 12px', borderRadius: '10px', fontSize: '10px', fontWeight: 900, alignSelf: 'flex-start' }}>
-                      {inv.paid === inv.total ? 'SETTLED' : 'PARTIAL'}
+                      {inv.paid === inv.total ? 'SETTLED' : 'PENDING'}
                     </div>
                   </div>
                   <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -555,7 +555,7 @@ export default function Accounting() {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: inv.paid === inv.total ? '#10b98115' : '#3b82f615', color: inv.paid === inv.total ? '#10b981' : '#3b82f6', padding: '6px 12px', borderRadius: '10px', width: 'fit-content', fontSize: '11px', fontWeight: 900 }}>
                           {inv.paid === inv.total ? <CheckCircle size={14} /> : <Activity size={14} />} 
-                          {inv.paid === inv.total ? 'SETTLED' : 'PARTIAL'}
+                          {inv.paid === inv.total ? 'SETTLED' : 'PENDING'}
                         </div>
                       </td>
                       <td onClick={e => e.stopPropagation()}>

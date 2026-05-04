@@ -7,10 +7,11 @@ import {
   FileText, 
   Package, 
   AlertTriangle, 
-  CreditCard 
+  CreditCard,
+  MessageSquare
 } from 'lucide-react'
 
-export default function Header({ pageLabel, onToggle, onLogout }) {
+export default function Header({ pageLabel, onToggle, onLogout, onNavigate }) {
   const [notifOpen, setNotifOpen] = useState(false)
 
   const notifications = [
@@ -23,8 +24,8 @@ export default function Header({ pageLabel, onToggle, onLogout }) {
   return (
     <header className="header">
       {/* Sidebar toggle */}
-      <button className="header-toggle btn" onClick={onToggle} title="Toggle sidebar">
-        <Menu size={20} />
+      <button className="header-toggle" onClick={onToggle} title="Toggle sidebar">
+        <Menu size={20} style={{ color: 'var(--text-2)' }} />
       </button>
 
       {/* Breadcrumb */}
@@ -42,14 +43,25 @@ export default function Header({ pageLabel, onToggle, onLogout }) {
           <input placeholder="Search records..." />
         </div>
 
+        {/* Chat */}
+        <button
+          className="header-icon-btn"
+          onClick={() => onNavigate('chat')}
+          title="Direct Communication"
+          style={{ position: 'relative' }}
+        >
+          <MessageSquare size={20} style={{ color: 'var(--text-2)' }} />
+          <span className="header-notif-dot" style={{ background: '#10b981' }} />
+        </button>
+
         {/* Notifications */}
         <div style={{ position: 'relative' }}>
           <button
-            className="header-icon-btn btn"
+            className="header-icon-btn"
             onClick={() => setNotifOpen(o => !o)}
             title="Notifications"
           >
-            <Bell size={20} />
+            <Bell size={20} style={{ color: 'var(--text-2)' }} />
             <span className="header-notif-dot" />
           </button>
           

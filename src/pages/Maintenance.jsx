@@ -198,7 +198,7 @@ function MaintenanceCard({ request, onView, onAssign, onStatus }) {
         zIndex: 2,
       }} onClick={e => e.stopPropagation()}>
         <button onClick={() => onView(request)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800 }}>
-          <Eye size={16} /> VIEW
+          <Eye size={16} /> VIEW DETAILS
         </button>
         <button onClick={(e) => onAssign(request, e)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800 }}>
           <User size={16} /> ASSIGN
@@ -251,11 +251,14 @@ function AnalyticsView() {
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${kpi.color}15`, color: kpi.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <kpi.icon size={28} />
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>{kpi.label}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#0f172a' }}>{kpi.value}</div>
                 <div style={{ fontSize: '12px', fontWeight: 800, color: kpi.change.startsWith('+') ? '#10b981' : '#ef4444' }}>{kpi.change}</div>
+              </div>
+              <div style={{ fontSize: '10px', fontWeight: 900, color: kpi.color, marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                VIEW DETAILS <ArrowRight size={10} />
               </div>
             </div>
           </div>

@@ -12,9 +12,9 @@ export const users = [
   { id: 7, name: 'Ali Al-Otaibi', initials: 'AO', role: 'Technician', email: 'aotaibi@kirby.com', phone: '+966 55 789 0123', status: 'Offline', city: 'Jeddah', joinDate: '2023-07-15', lastActive: '3 hours ago', color: '#F59E0B', jobsDone: 98, rating: 4.5, specialty: 'Water Filters', paymentsCollected: 31800, reportsCount: 15 },
   { id: 8, name: 'Yusuf Al-Shammari', initials: 'YS', role: 'Technician', email: 'yshammari@kirby.com', phone: '+966 54 890 1234', status: 'Busy', city: 'Dammam', joinDate: '2023-08-20', lastActive: 'Now', color: '#3B82F6', jobsDone: 76, rating: 4.3, specialty: 'Maintenance', paymentsCollected: 22400, reportsCount: 12 },
   { id: 9, name: 'Nasser Al-Dosari', initials: 'ND', role: 'Technician', email: 'ndosari@kirby.com', phone: '+966 58 901 2345', status: 'Online', city: 'Riyadh', joinDate: '2023-10-01', lastActive: 'Now', color: '#EF4444', jobsDone: 55, rating: 4.6, specialty: 'Solar Systems', paymentsCollected: 18500, reportsCount: 9 },
-  { id: 10, name: 'Hana Al-Mutairi', initials: 'HM', role: 'Accountant', email: 'hmutairi@kirby.com', phone: '+966 56 012 3456', status: 'Active', city: 'Riyadh', joinDate: '2023-03-01', lastActive: '30 min ago', color: '#8B5CF6' },
-  { id: 11, name: 'Tariq Al-Anazi', initials: 'TA', role: 'Engineer', email: 'tanazi@kirby.com', phone: '+966 50 123 6789', status: 'Active', city: 'Riyadh', joinDate: '2022-11-01', lastActive: '1 hour ago', color: '#06B6D4' },
-  { id: 12, name: 'Saud Al-Maliki', initials: 'SM', role: 'Management', email: 'smaliki@kirby.com', phone: '+966 55 234 7890', status: 'Active', city: 'Riyadh', joinDate: '2022-01-01', lastActive: '20 min ago', color: '#0F172A' },
+  { id: 10, name: 'Hana Al-Mutairi', initials: 'HM', role: 'ACCOUNTANT', email: 'hmutairi@kirby.com', phone: '+966 56 012 3456', status: 'Active', city: 'Riyadh', joinDate: '2023-03-01', lastActive: '30 min ago', color: '#8B5CF6' },
+  { id: 11, name: 'Tariq Al-Anazi', initials: 'TA', role: 'ENGINEER', email: 'tanazi@kirby.com', phone: '+966 50 123 6789', status: 'Active', city: 'Riyadh', joinDate: '2022-11-01', lastActive: '1 hour ago', color: '#06B6D4' },
+  { id: 12, name: 'Saud Al-Maliki', initials: 'SM', role: 'MANAGEMENT', email: 'smaliki@kirby.com', phone: '+966 55 234 7890', status: 'Active', city: 'Riyadh', joinDate: '2022-01-01', lastActive: '20 min ago', color: '#0F172A' },
 ];
 
 export const devices = [
@@ -52,7 +52,7 @@ export const invoices = [
   { id: 'INV-0041', clientId: 1, client: 'Ahmed Al-Rashidi', techId: 6, tech: 'Mohammed Salim', requestId: 'MR-001', type: 'Maintenance', items: [{name:'Service Labor',qty:2,unit:150},{name:'Connector Repair',qty:1,unit:80}], total: 380, paid: 380, status: 'Paid', method: 'Cash', date: '2026-04-26', isNew: false },
   { id: 'INV-0042', clientId: 3, client: 'Khalid Bin Naif', techId: 8, tech: 'Yusuf Al-Shammari', requestId: 'MR-003', type: 'Maintenance + Parts', items: [{name:'Service Labor',qty:3,unit:150},{name:'Inverter Unit (5kW)',qty:1,unit:2200},{name:'Cables & Fittings',qty:1,unit:120}], total: 2770, paid: 0, status: 'Pending', method: null, date: '2026-04-27', isNew: true },
   { id: 'INV-0043', clientId: 5, client: 'Omar Al-Zahrani', techId: 9, tech: 'Nasser Al-Dosari', requestId: 'MR-004', type: 'Maintenance', items: [{name:'Panel Cleaning (20 panels)',qty:1,unit:350},{name:'Efficiency Report',qty:1,unit:50}], total: 400, paid: 400, status: 'Paid', method: 'Cash', date: '2026-04-23', isNew: false },
-  { id: 'INV-0044', clientId: 2, client: 'Sara Al-Ghamdi', techId: 7, tech: 'Ali Al-Otaibi', requestId: 'MR-002', type: 'Maintenance', items: [{name:'Annual Service Fee',qty:1,unit:500}], total: 500, paid: 250, status: 'Partial', method: 'Cash', date: '2026-04-25', isNew: false },
+  { id: 'INV-0044', clientId: 2, client: 'Sara Al-Ghamdi', techId: 7, tech: 'Ali Al-Otaibi', requestId: 'MR-002', type: 'Maintenance', items: [{name:'Annual Service Fee',qty:1,unit:500}], total: 500, paid: 250, status: 'Pending', method: 'Cash', date: '2026-04-25', isNew: false },
   { id: 'INV-0045', clientId: 5, client: 'Omar Al-Zahrani', techId: 8, tech: 'Yusuf Al-Shammari', requestId: 'MR-008', type: 'Installation', items: [{name:'IoT Monitoring Kit',qty:1,unit:850},{name:'Installation Labor',qty:4,unit:150}], total: 1450, paid: 0, status: 'Pending', method: null, date: '2026-04-28', isNew: true },
   { id: 'INV-0040', clientId: 1, client: 'Ahmed Al-Rashidi', techId: 6, tech: 'Mohammed Salim', requestId: 'MR-001', type: 'Sales', items: [{name:'Solar System 10kW',qty:1,unit:18000},{name:'Battery Storage 5kWh',qty:1,unit:6500},{name:'Installation',qty:1,unit:2000}], total: 26500, paid: 26500, status: 'Paid', method: 'Cash', date: '2026-01-15', isNew: false },
   { id: 'INV-0039', clientId: 3, client: 'Khalid Bin Naif', techId: 6, tech: 'Mohammed Salim', requestId: null, type: 'Installment', items: [{name:'Installment Plan Payment #3',qty:1,unit:1500}], total: 1500, paid: 1500, status: 'Paid', method: 'Bank Transfer', date: '2026-04-01', isNew: false },
@@ -60,12 +60,12 @@ export const invoices = [
 ];
 
 export const products = [
-  { id: 1, name: 'Solar System 5kW', category: 'Solar Systems', price: 12500, stock: 8, status: 'In Stock', sku: 'SOL-5KW-01', description: 'Complete 5kW solar system with panels, inverter, and mounting' },
-  { id: 2, name: 'Solar System 10kW', category: 'Solar Systems', price: 22000, stock: 4, status: 'In Stock', sku: 'SOL-10KW-01', description: 'High-capacity 10kW solar system for large homes and businesses' },
+  { id: 1, name: 'Solar System 5kW', category: 'Solar Systems', price: 12500, stock: 8, status: 'In Stock', sku: 'SOL-5KW-01', description: 'Complete 5kW solar system with panels, inverter, and mounting', image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop' },
+  { id: 2, name: 'Solar System 10kW', category: 'Solar Systems', price: 22000, stock: 4, status: 'In Stock', sku: 'SOL-10KW-01', description: 'High-capacity 10kW solar system for large homes and businesses', image: 'https://images.unsplash.com/photo-1521618755572-156ae0cdd74d?q=80&w=2076&auto=format&fit=crop' },
   { id: 3, name: 'Solar System 3kW', category: 'Solar Systems', price: 8500, stock: 0, status: 'Out of Stock', sku: 'SOL-3KW-01', description: 'Compact 3kW solar system suitable for small homes' },
-  { id: 4, name: 'Water Filter 6-Stage RO', category: 'Water Filters', price: 3200, stock: 15, status: 'In Stock', sku: 'WF-6S-RO-01', description: '6-stage reverse osmosis water filtration system' },
+  { id: 4, name: 'Water Filter 6-Stage RO', category: 'Water Filters', price: 3200, stock: 15, status: 'In Stock', sku: 'WF-6S-RO-01', description: '6-stage reverse osmosis water filtration system', image: 'https://images.unsplash.com/photo-1610444315263-65d21a2c6767?q=80&w=2070&auto=format&fit=crop' },
   { id: 5, name: 'Water Filter 9-Stage', category: 'Water Filters', price: 4800, stock: 3, status: 'Low Stock', sku: 'WF-9S-01', description: 'Advanced 9-stage water purification with UV sterilization' },
-  { id: 6, name: 'Battery Storage 5kWh', category: 'Accessories', price: 6500, stock: 2, status: 'Low Stock', sku: 'BAT-5KWH-01', description: 'Lithium battery storage for solar energy systems' },
+  { id: 6, name: 'Battery Storage 5kWh', category: 'Accessories', price: 6500, stock: 2, status: 'Low Stock', sku: 'BAT-5KWH-01', description: 'Lithium battery storage for solar energy systems', image: 'https://images.unsplash.com/photo-1620288126084-25bf15a51351?q=80&w=2070&auto=format&fit=crop' },
   { id: 7, name: 'Smart Inverter 5kW', category: 'Accessories', price: 2800, stock: 10, status: 'In Stock', sku: 'INV-5KW-01', description: 'Grid-tie hybrid inverter with WiFi monitoring' },
   { id: 8, name: 'Solar Panel 400W Mono', category: 'Spare Parts', price: 380, stock: 45, status: 'In Stock', sku: 'PNL-400W-M', description: 'High-efficiency monocrystalline solar panel' },
 ];
@@ -167,10 +167,25 @@ export const offers = [
 ];
 
 export const permissions = {
-  Management: { viewAll: true, editAll: true, deleteAll: true, manageUsers: true, viewReports: true, manageAccounting: true, assignJobs: true, manageInventory: true },
-  Admin: { viewAll: true, editAll: true, deleteAll: true, manageUsers: true, viewReports: true, manageAccounting: true, assignJobs: true, manageInventory: true },
-  Accountant: { viewAll: true, editAll: false, deleteAll: false, manageUsers: false, viewReports: true, manageAccounting: true, assignJobs: false, manageInventory: false },
-  Engineer: { viewAll: true, editAll: true, deleteAll: false, manageUsers: false, viewReports: true, manageAccounting: false, assignJobs: true, manageInventory: true },
+  MANAGEMENT: { viewAll: true, editAll: true, deleteAll: true, manageUsers: true, viewReports: true, manageAccounting: true, assignJobs: true, manageInventory: true },
+  ADMIN:      { viewAll: true, editAll: true, deleteAll: true, manageUsers: true, viewReports: true, manageAccounting: true, assignJobs: true, manageInventory: true },
+  ACCOUNTANT: { viewAll: true, editAll: false, deleteAll: false, manageUsers: false, viewReports: true, manageAccounting: true, assignJobs: false, manageInventory: false },
+  ENGINEER:   { viewAll: true, editAll: true, deleteAll: false, manageUsers: false, viewReports: true, manageAccounting: false, assignJobs: true, manageInventory: true },
+  HR:         { viewAll: true, editAll: false, deleteAll: false, manageUsers: true, viewReports: false, manageAccounting: false, assignJobs: false, manageInventory: false },
   Technician: { viewAll: false, editAll: false, deleteAll: false, manageUsers: false, viewReports: false, manageAccounting: false, assignJobs: false, manageInventory: false },
-  Client: { viewAll: false, editAll: false, deleteAll: false, manageUsers: false, viewReports: false, manageAccounting: false, assignJobs: false, manageInventory: false },
+  Client:     { viewAll: false, editAll: false, deleteAll: false, manageUsers: false, viewReports: false, manageAccounting: false, assignJobs: false, manageInventory: false },
 };
+
+export const mockChatThreads = [
+  { id: 't1', name: 'Field Technicians', type: 'Technical', lastMsg: 'Heading to site B now.', time: '10:45 AM', unread: 2, color: '#10b981', members: [6, 7, 8, 9] },
+  { id: 't2', name: 'Strategic Management', type: 'Team', lastMsg: 'Quarterly review scheduled for Monday.', time: 'Yesterday', unread: 0, color: '#0f172a', members: [12, 10, 11] },
+  { id: 't3', name: 'Financial Oversight', type: 'Team', lastMsg: 'Invoice audit complete.', time: '2 days ago', unread: 0, color: '#8b5cf6', members: [10, 12] },
+  { id: 't4', name: 'Engineering Core', type: 'Technical', lastMsg: 'System patch deployed successfully.', time: '3 days ago', unread: 0, color: '#3b82f6', members: [11, 6] },
+];
+
+export const mockMessages = [
+  { id: 1, threadId: 't1', senderId: 6, text: 'Heading to site B now.', time: '10:45 AM', isMe: false },
+  { id: 2, threadId: 't1', senderId: 12, text: 'Acknowledged. Check the inverter fault reports before arrival.', time: '10:48 AM', isMe: true },
+  { id: 3, threadId: 't2', senderId: 10, text: 'Quarterly review scheduled for Monday.', time: 'Yesterday', isMe: false },
+];
+

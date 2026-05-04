@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
-import { users, permissions, invoices, maintenanceRequests, installmentPlans, partsRequests, orders, vehicles, vehicleAssignments, products, devices, technicalReports, reviews, vehicleActivityLogs } from '../data'
+import { users, permissions, invoices, maintenanceRequests, installmentPlans, partsRequests, orders, vehicles, vehicleAssignments, products, devices, technicalReports, reviews, vehicleActivityLogs, recentActivity } from '../data'
 import { useToast } from '../App'
 import { 
   Users, 
@@ -264,7 +264,7 @@ function UserIdentityCard({ user, onEdit, onDelete, onView }) {
         padding: hovered ? '0 24px' : '0'
       }} onClick={e => e.stopPropagation()}>
         <button className="btn btn-primary btn-sm" style={{ flex: 1, borderRadius: '14px', height: '42px', gap: '8px' }} onClick={() => onView(user)}>
-          <Eye size={16} /> Profile
+          <Eye size={16} /> View Details
         </button>
         <button className="btn btn-ghost btn-sm" style={{ width: '42px', height: '42px', borderRadius: '14px', padding: 0 }} onClick={e => onEdit(user, e)}>
           <Pencil size={16} />
@@ -347,7 +347,9 @@ function SectionTitle({ icon: Icon, title, color = '#3b82f6' }) {
   )
 }
 
-function DeviceCard({ device, onServiceRequest }) {
+function DeviceCard({ device, onServiceRequest, onViewDetails }) {
+  const [showHistory, setShowHistory] = useState(false)
+
   return (
     <div className="glass-card" style={{ padding: '20px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -363,14 +365,28 @@ function DeviceCard({ device, onServiceRequest }) {
       <div style={{ fontWeight: 900, fontSize: '15px', color: '#0f172a', marginBottom: '4px' }}>{device.name}</div>
       <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '16px' }}>SN: {device.serial}</div>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>SERVICE HISTORY</div>
-        {device.history.map((h, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, color: '#475569' }}>
-            <History size={12} color="#94a3b8" /> {h}
-          </div>
-        ))}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '12px', padding: '10px', fontSize: '11px', border: '1px solid #e2e8f0' }} onClick={() => onViewDetails && onViewDetails(device)}>
+          View Details
+        </button>
+        <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '12px', padding: '10px', fontSize: '11px', border: '1px solid #e2e8f0', background: showHistory ? '#f1f5f9' : 'transparent' }} onClick={() => setShowHistory(!showHistory)}>
+          Service History
+        </button>
       </div>
+
+      {showHistory && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', padding: '16px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>SERVICE HISTORY LOG</div>
+          {device.history && device.history.map((h, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, color: '#475569' }}>
+              <History size={12} color="#94a3b8" /> {h}
+            </div>
+          ))}
+          {(!device.history || device.history.length === 0) && (
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>No history available.</div>
+          )}
+        </div>
+      )}
 
       <button className="btn btn-primary" style={{ width: '100%', borderRadius: '12px', padding: '10px', fontSize: '12px' }} onClick={() => onServiceRequest(device.name)}>
         Request Service
@@ -388,6 +404,8 @@ export default function UserManagement() {
   const [selected, setSelected] = useState(null)
   const [selectedReport, setSelectedReport] = useState(null)
   const [selectedVehicle, setSelectedVehicle] = useState(null)
+  const [selectedDevice, setSelectedDevice] = useState(null)
+  const [selectedTask, setSelectedTask] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
   const [form, setForm]         = useState({ name:'', role:'Client', email:'', phone:'', city:'', status:'Active' })
   const [mounted, setMounted]   = useState(false)
@@ -724,14 +742,19 @@ export default function UserManagement() {
             {(selected.role === 'Client' ? [
               { id: 'overview', label: 'Profile Details' },
               { id: 'assets', label: 'Assets & Logistics' },
+              { id: 'maintenance', label: 'Maintenance Hub' },
               { id: 'finance', label: 'Finance & Orders' },
-              { id: 'reviews', label: 'Review Hub' }
+              { id: 'reviews', label: 'Review Hub' },
+              { id: 'activity', label: 'Activity History' }
             ] : selected.role === 'Technician' ? [
               { id: 'overview', label: 'Profile Details' },
+              { id: 'tasks', label: 'Task Board & Maintenance' },
+              { id: 'operations', label: 'Field Operations' },
               { id: 'finance', label: 'Collections & Salary' },
-              { id: 'operations', label: 'Field Operations' }
+              { id: 'activity', label: 'Activity History' }
             ] : [
-              { id: 'overview', label: 'Profile Details' }
+              { id: 'overview', label: 'Profile Details' },
+              { id: 'activity', label: 'Activity History' }
             ]).map(t => (
               <button 
                 key={t.id} 
@@ -834,16 +857,172 @@ export default function UserManagement() {
             </>
           )}
 
+          {selected.role === 'Technician' && profileTab === 'tasks' && (
+            <>
+              <SectionTitle icon={Briefcase} title="Maintenance Management & Task Board" color="#10b981" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {maintenanceRequests.filter(m => m.technician === selected.name).map(req => (
+                  <div key={req.id} style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                      <div>
+                        <div style={{ fontWeight: 900, fontSize: '16px' }}>{req.id} - {req.type}</div>
+                        <div style={{ color: '#64748b', fontSize: '12px', fontWeight: 700 }}>Client: {req.client} | Location: {req.city}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ color: req.status === 'Completed' ? '#10b981' : '#f59e0b', fontWeight: 900, fontSize: '12px', marginBottom: '8px' }}>{req.status.toUpperCase()}</div>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setSelectedTask(req)}>View Details</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {maintenanceRequests.filter(m => m.technician === selected.name).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '24px', border: '1px dashed #e2e8f0', color: '#94a3b8', fontSize: '14px', fontWeight: 700 }}>
+                    No active tasks assigned to this technician.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {selected.role === 'Technician' && profileTab === 'operations' && (
+            <>
+              <SectionTitle icon={Package} title="Spare Parts Inventory Status" color="#f59e0b" />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+                {partsRequests.filter(pr => pr.tech === selected.name).map(part => (
+                  <div key={part.id} style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f59e0b15', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Package size={20} />
+                      </div>
+                      <div style={{ 
+                        background: part.status === 'Approved' ? '#10b98115' : '#f59e0b15', 
+                        color: part.status === 'Approved' ? '#10b981' : '#f59e0b', 
+                        padding: '4px 10px', borderRadius: '8px', fontSize: '10px', fontWeight: 900 
+                      }}>{part.status.toUpperCase()}</div>
+                    </div>
+                    <div style={{ fontWeight: 900, fontSize: '15px', color: '#1e293b' }}>{part.part}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, marginTop: '4px' }}>REQ ID: {part.requestId}</div>
+                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>
+                      <span>QUANTITY: {part.qty}</span>
+                      <span>DATE: {part.date}</span>
+                    </div>
+                  </div>
+                ))}
+                {partsRequests.filter(pr => pr.tech === selected.name).length === 0 && (
+                  <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '30px', color: '#94a3b8', fontSize: '12px', fontWeight: 700 }}>
+                    No spare part requests recorded.
+                  </div>
+                )}
+              </div>
+
+              <SectionTitle icon={ClipboardList} title="Technical Diagnostic Reports" color="#3b82f6" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                {[
+                  { id: 'RPT-2026-A1', client: 'Omar Al-Zahrani', device: 'Central AC Unit A1', date: '2026-05-01', status: 'Submitted' },
+                  { id: 'RPT-2026-A2', client: 'Ahmed Al-Rashidi', device: 'HVAC System Z', date: '2026-04-28', status: 'Under Review' },
+                ].map(rpt => (
+                  <div key={rpt.id} style={{ background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 900, fontSize: '14px', color: '#0f172a' }}>{rpt.id} — {rpt.client}</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, marginTop: '4px' }}>DEVICE: {rpt.device} | DATE: {rpt.date}</div>
+                    </div>
+                    <button className="btn btn-ghost btn-sm" style={{ fontWeight: 800 }}>View Report</button>
+                  </div>
+                ))}
+              </div>
+
+              <SectionTitle icon={Truck} title="Vehicle Assignment Module" color="#8b5cf6" />
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#8b5cf615', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Truck size={24} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 900, fontSize: '16px', color: '#0f172a' }}>Fleet Vehicle #402</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Ford Transit 2024 (Assigned)</div>
+                    </div>
+                  </div>
+                  <div style={{ background: '#10b98115', color: '#10b981', padding: '6px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 }}>ACTIVE DEPLOYMENT</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>LICENSE PLATE</div>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#1e293b' }}>KSA-9921</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>LAST INSPECTION</div>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#1e293b' }}>2026-04-10</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>FUEL LOG (CURRENT)</div>
+                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#1e293b' }}>85% Full</div>
+                  </div>
+                </div>
+              </div>
+
+              <SectionTitle icon={Users} title="Team & Collaboration Field Network" color="#ec4899" />
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginBottom: '16px' }}>Active Collaborations & Support Requests</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[
+                    { tech: 'Fahad Al-Qahtani', req: 'Requires specialized HVAC tools at Site B', status: 'En Route', color: '#f59e0b' },
+                    { tech: 'Sami Abdullah', req: 'Joint maintenance on Central Unit', status: 'Completed', color: '#10b981' }
+                  ].map((team, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>{team.tech}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{team.req}</div>
+                      </div>
+                      <div style={{ color: team.color, fontWeight: 900, fontSize: '11px', background: `${team.color}15`, padding: '4px 10px', borderRadius: '8px' }}>
+                        {team.status.toUpperCase()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {selected.role === 'Client' && profileTab === 'assets' && (
             <>
               <SectionTitle icon={HardDrive} title="Managed Assets & Devices" color="#3b82f6" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
                 {devices.filter(d => d.clientId === selected.id).map((d, i) => (
-                  <DeviceCard key={i} device={d} onServiceRequest={(name) => toast(`Service request for ${name} initiated`, 'success')} />
+                  <DeviceCard 
+                    key={i} 
+                    device={d} 
+                    onServiceRequest={(name) => toast(`Service request for ${name} initiated`, 'success')} 
+                    onViewDetails={(dev) => setSelectedDevice(dev)}
+                  />
                 ))}
                 {devices.filter(d => d.clientId === selected.id).length === 0 && (
                   <div style={{ gridColumn: 'span 3', textAlign: 'center', padding: '40px', background: '#f8fafc', borderRadius: '24px', border: '1px dashed #e2e8f0', color: '#94a3b8', fontSize: '14px' }}>
                     No registered devices found for this client protocol.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {selected.role === 'Client' && profileTab === 'maintenance' && (
+            <>
+              <SectionTitle icon={ClipboardList} title="Maintenance Requests" color="#3b82f6" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {maintenanceRequests.filter(m => m.client === selected.name).map(req => (
+                  <div key={req.id} style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                      <div>
+                        <div style={{ fontWeight: 900, fontSize: '16px' }}>{req.id} - {req.type}</div>
+                        <div style={{ color: '#64748b', fontSize: '12px', fontWeight: 700 }}>Technician: {req.technician || 'Pending Assignment'}</div>
+                      </div>
+                      <div style={{ color: req.status === 'Completed' ? '#10b981' : '#f59e0b', fontWeight: 900, fontSize: '12px' }}>{req.status.toUpperCase()}</div>
+                    </div>
+                  </div>
+                ))}
+                {maintenanceRequests.filter(m => m.client === selected.name).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '24px', border: '1px dashed #e2e8f0', color: '#94a3b8', fontSize: '14px', fontWeight: 700 }}>
+                    No maintenance requests found for this client.
                   </div>
                 )}
               </div>
@@ -932,51 +1111,6 @@ export default function UserManagement() {
                   </div>
                 ))}
               </div>
-
-              <SectionTitle icon={Package} title="Spare Parts Inventory Status" color="#f59e0b" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {partsRequests.filter(pr => pr.tech === selected.name || maintenanceRequests.find(mr => mr.id === pr.requestId && mr.client === selected.name)).map(part => (
-                  <div key={part.id} style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f59e0b15', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Box size={20} />
-                      </div>
-                      <div style={{ 
-                        background: part.status === 'Approved' ? '#10b98115' : '#f59e0b15', 
-                        color: part.status === 'Approved' ? '#10b981' : '#f59e0b', 
-                        padding: '4px 10px', borderRadius: '8px', fontSize: '10px', fontWeight: 900 
-                      }}>{part.status.toUpperCase()}</div>
-                    </div>
-                    <div style={{ fontWeight: 900, fontSize: '15px', color: '#1e293b' }}>{part.part}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, marginTop: '4px' }}>FOR DEVICE: {devices.find(d => d.clientId === selected.id)?.name || 'System Unit'}</div>
-                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>
-                      <span>QUANTITY: {part.qty}</span>
-                      <span>DATE: {part.date}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <SectionTitle icon={Award} title="Review Hub: Devices & Technicians" color="#06b6d4" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {reviews.filter(r => r.clientId === selected.id).map(review => (
-                  <div key={review.id} style={{ background: '#f8fafc', padding: '20px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>{review.type.toUpperCase()} — {review.target}</div>
-                    <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-                      {[1,2,3,4,5].map(s => (
-                        <Star key={s} size={14} fill={s <= review.rating ? "#f59e0b" : "transparent"} color="#f59e0b" />
-                      ))}
-                    </div>
-                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#1e293b' }}>"{review.comment}"</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', fontWeight: 700 }}>{review.date}</div>
-                  </div>
-                ))}
-                {reviews.filter(r => r.clientId === selected.id).length === 0 && (
-                  <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '30px', color: '#94a3b8', fontSize: '12px', fontWeight: 700 }}>
-                    Historical review data unavailable.
-                  </div>
-                )}
-              </div>
             </>
           )}
 
@@ -1008,7 +1142,7 @@ export default function UserManagement() {
           {selected.role === 'Technician' && profileTab === 'finance' && (
             <>
               <SectionTitle icon={Plus} title="Payment Collection Module" color="#10b981" />
-              <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1.5px dashed #cbd5e1' }}>
+              <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1.5px dashed #cbd5e1', marginBottom: '32px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
                   <div className="form-control">
                     <label style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', marginBottom: '8px', display: 'block' }}>COLLECTION AMOUNT (SAR)</label>
@@ -1018,7 +1152,6 @@ export default function UserManagement() {
                     <label style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', marginBottom: '8px', display: 'block' }}>PAYMENT STATUS</label>
                     <select style={{ width: '100%', height: '48px', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '0 16px', fontWeight: 800, background: 'white' }}>
                       <option>Paid Full</option>
-                      <option>Partial Payment</option>
                       <option>Pending</option>
                       <option>Overdue</option>
                     </select>
@@ -1027,6 +1160,54 @@ export default function UserManagement() {
                 <button className="btn btn-primary" style={{ width: '100%', height: '52px', borderRadius: '16px', background: '#10b981', border: 'none', fontWeight: 900, gap: '10px' }} onClick={() => toast('Collection ledger updated', 'success')}>
                   <DollarSign size={20} /> Record Field Collection
                 </button>
+              </div>
+
+              <SectionTitle icon={CreditCard} title="Salary & Compensation History" color="#f59e0b" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[
+                  { month: 'April 2026', total: 9700, bonus: 1200, status: 'Pending' },
+                  { month: 'March 2026', total: 9200, bonus: 800, status: 'Disbursed' },
+                  { month: 'February 2026', total: 9450, bonus: 950, status: 'Disbursed' },
+                ].map(sal => (
+                  <div key={sal.month} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', background: '#f8fafc', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                    <div>
+                      <div style={{ fontSize: '18px', fontWeight: 950, color: '#0f172a' }}>{sal.month}</div>
+                      <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>BONUS ACCRUED: SAR {sal.bonus}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a' }}>SAR {sal.total.toLocaleString()}</div>
+                        <div style={{ fontSize: '11px', fontWeight: 900, color: sal.status === 'Disbursed' ? '#10b981' : '#f59e0b' }}>{sal.status.toUpperCase()}</div>
+                      </div>
+                      {sal.status === 'Pending' && (
+                        <button className="btn btn-primary btn-sm" style={{ height: '40px', borderRadius: '12px', background: '#0f172a', border: 'none', fontWeight: 900 }} onClick={() => toast('Salary dispatched successfully', 'success')}>
+                          Dispatch
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <SectionTitle icon={FileText} title="Generated Invoices" color="#3b82f6" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                {invoices.filter(i => i.techId === selected.id).map(inv => (
+                  <div key={inv.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: '#f8fafc', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>{inv.id} — {inv.client}</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{inv.date}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 900, color: inv.status === 'Paid' ? '#10b981' : '#f59e0b' }}>SAR {inv.total.toLocaleString()}</div>
+                      <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>{inv.status.toUpperCase()}</div>
+                    </div>
+                  </div>
+                ))}
+                {invoices.filter(i => i.techId === selected.id).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '20px', border: '1px dashed #e2e8f0', color: '#94a3b8', fontSize: '12px', fontWeight: 700 }}>
+                    No invoices generated by this technician.
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1118,6 +1299,65 @@ export default function UserManagement() {
               </div>
             </>
           )}
+
+          {profileTab === 'activity' && (() => {
+            const userActivity = [
+              ...recentActivity.filter(a => a.text.includes(selected.name)).map(a => ({ ...a, date: a.time })),
+              ...maintenanceRequests.filter(m => m.client === selected.name || m.technician === selected.name).map(m => ({
+                id: `act-mr-${m.id}`,
+                icon: '🔧',
+                type: 'maintenance',
+                text: m.client === selected.name ? `Requested maintenance for ${m.type}` : `Assigned to maintenance task ${m.id}`,
+                time: m.date,
+                color: '#3B82F6'
+              })),
+              ...invoices.filter(i => i.client === selected.name || i.tech === selected.name).map(i => ({
+                id: `act-inv-${i.id}`,
+                icon: '📄',
+                type: 'invoice',
+                text: i.client === selected.name ? `Invoice ${i.id} issued for ${i.total} SAR` : `Generated invoice ${i.id} for ${i.client}`,
+                time: i.date,
+                color: '#10B981'
+              })),
+              ...orders.filter(o => o.client === selected.name).map(o => ({
+                id: `act-ord-${o.id}`,
+                icon: '🛒',
+                type: 'order',
+                text: `Placed order ${o.id} for ${o.amount} SAR`,
+                time: o.date,
+                color: '#8B5CF6'
+              }))
+            ].sort((a, b) => {
+              const dateA = a.time.includes('ago') || a.time === 'Now' ? new Date() : new Date(a.time);
+              const dateB = b.time.includes('ago') || b.time === 'Now' ? new Date() : new Date(b.time);
+              return dateB - dateA;
+            });
+
+            return (
+              <>
+                <SectionTitle icon={History} title="System Activity & Interaction Log" color="#64748b" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {userActivity.map(act => (
+                    <div key={act.id} style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '20px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: `${act.color}15`, color: act.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                        {act.icon}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{act.text}</div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, marginTop: '4px' }}>{act.time} · System Protocol: {act.type.toUpperCase()}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {userActivity.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px', background: '#f8fafc', borderRadius: '24px', border: '1px dashed #e2e8f0', color: '#94a3b8' }}>
+                      <History size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
+                      <div style={{ fontSize: '14px', fontWeight: 700 }}>No recent activity logs found for this identity.</div>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </Modal>
       )}
 
@@ -1273,6 +1513,7 @@ export default function UserManagement() {
         <Modal 
           title="Technical Audit & Diagnostics" 
           onClose={() => setSelectedReport(null)}
+          size="lg"
           footer={
             <>
               <button className="btn btn-ghost" onClick={() => setSelectedReport(null)}>Close</button>
@@ -1302,18 +1543,47 @@ export default function UserManagement() {
                 <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>SUBMISSION TIME</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>{selectedReport.date} at {selectedReport.time}</div>
               </div>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>LOGGED ARRIVAL TIME</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>{selectedReport.arrivalTime || '14:22'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>LOGGED COMPLETION TIME</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>{selectedReport.completionTime || '16:45'}</div>
+              </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>SITE ASSIGNMENT</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Site ID: {selectedReport.siteId}</div>
               </div>
             </div>
 
-            <div style={{ padding: '24px', background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', minHeight: '120px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>DIAGNOSTICS & NOTES</div>
-              <p style={{ fontSize: '14px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
-                {selectedReport.content}
-              </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+              <div style={{ padding: '24px', background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', minHeight: '120px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>FAULT CAUSE & DIAGNOSTICS</div>
+                <p style={{ fontSize: '14px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
+                  {selectedReport.faultCause || selectedReport.content}
+                </p>
+              </div>
+              <div style={{ padding: '24px', background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', minHeight: '120px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>FUTURE RECOMMENDATIONS</div>
+                <p style={{ fontSize: '14px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
+                  {selectedReport.recommendations || 'Recommend quarterly preventive maintenance to ensure unit integrity.'}
+                </p>
+              </div>
             </div>
+
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>MEDIA ATTACHMENTS (BEFORE/AFTER)</div>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ flex: 1, padding: '24px', borderRadius: '20px', border: '1.5px dashed #cbd5e1', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', fontWeight: 800 }}>
+                  <span style={{ fontSize: '24px', marginBottom: '8px' }}>📷</span> Before Photo (Attached)
+                </div>
+                <div style={{ flex: 1, padding: '24px', borderRadius: '20px', border: '1.5px dashed #cbd5e1', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontWeight: 800 }}>
+                  <span style={{ fontSize: '24px', marginBottom: '8px' }}>📷</span> After Photo (Attached)
+                </div>
+              </div>
+            </div>
+
           </div>
         </Modal>
       )}
@@ -1377,6 +1647,125 @@ export default function UserManagement() {
                 </div>
               )}
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Device Details Modal ── */}
+      {selectedDevice && (
+        <Modal 
+          title="Device Diagnostics & Audit" 
+          onClose={() => setSelectedDevice(null)}
+          footer={<button className="btn btn-ghost" onClick={() => setSelectedDevice(null)}>Close Viewer</button>}
+        >
+          <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <HardDrive size={28} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{selectedDevice.name}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', letterSpacing: '1px' }}>SN: {selectedDevice.serial}</div>
+                </div>
+              </div>
+              <div style={{ padding: '8px 16px', borderRadius: '12px', background: selectedDevice.status === 'Optimal' ? '#ecfdf5' : '#f59e0b15', color: selectedDevice.status === 'Optimal' ? '#10b981' : '#f59e0b', fontSize: '12px', fontWeight: 900 }}>
+                {selectedDevice.status.toUpperCase()}
+              </div>
+            </div>
+
+            <div style={{ fontSize: '13px', fontWeight: 900, color: '#1e293b', marginBottom: '16px' }}>FULL SERVICE HISTORY</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {selectedDevice.history && selectedDevice.history.map((h, i) => (
+                <div key={i} style={{ padding: '16px 20px', background: 'white', borderRadius: '16px', border: '1px solid #f1f5f9', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f8fafc', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <History size={20} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>{h.split(' - ')[1] || h}</div>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', marginTop: '2px' }}>{h.split(' - ')[0] || 'Unknown Date'}</div>
+                  </div>
+                </div>
+              ))}
+              {(!selectedDevice.history || selectedDevice.history.length === 0) && (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '12px', fontWeight: 700, background: 'white', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
+                  No historical records logged for this device.
+                </div>
+              )}
+            </div>
+            
+            <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+              <button className="btn btn-primary" style={{ flex: 1, borderRadius: '16px', padding: '14px', fontSize: '13px', fontWeight: 800 }} onClick={() => toast(`Service requested for ${selectedDevice.name}`, 'success')}>
+                Initiate New Service
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Task Details Modal ── */}
+      {selectedTask && (
+        <Modal 
+          title="Maintenance Task Overview" 
+          onClose={() => setSelectedTask(null)}
+          footer={<button className="btn btn-ghost" onClick={() => setSelectedTask(null)}>Close Overview</button>}
+        >
+          <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <Briefcase size={28} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{selectedTask.type}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 900, color: '#10b981', letterSpacing: '1px' }}>TASK ID: {selectedTask.id}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ padding: '6px 12px', borderRadius: '8px', background: selectedTask.status === 'Completed' ? '#ecfdf5' : '#fffbeb', color: selectedTask.status === 'Completed' ? '#10b981' : '#f59e0b', fontSize: '11px', fontWeight: 900, marginBottom: '6px', display: 'inline-block' }}>
+                  {selectedTask.status.toUpperCase()}
+                </div>
+                <div style={{ padding: '6px 12px', borderRadius: '8px', background: selectedTask.priority === 'High' || selectedTask.priority === 'Critical' ? '#fef2f2' : '#f1f5f9', color: selectedTask.priority === 'High' || selectedTask.priority === 'Critical' ? '#ef4444' : '#64748b', fontSize: '11px', fontWeight: 900, display: 'inline-block', marginLeft: '6px' }}>
+                  {selectedTask.priority.toUpperCase()} PRIORITY
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>CLIENT DETAILS</div>
+                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1e293b' }}>{selectedTask.client}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}><MapPin size={12}/> {selectedTask.city}</div>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>SCHEDULE LOG</div>
+                <div style={{ fontSize: '14px', fontWeight: 900, color: '#1e293b' }}>{selectedTask.scheduled || selectedTask.date}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}><Calendar size={12}/> Scheduled Visit</div>
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9', marginBottom: '24px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileText size={14} /> DIAGNOSTIC DESCRIPTION
+              </div>
+              <p style={{ fontSize: '14px', color: '#334155', lineHeight: 1.6, margin: 0, fontWeight: 600 }}>
+                {selectedTask.description || 'No detailed diagnostic description provided.'}
+              </p>
+            </div>
+
+            {selectedTask.faultPhotos > 0 && (
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>ATTACHED MEDIA ({selectedTask.faultPhotos} PHOTOS)</div>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(selectedTask.faultPhotos, 3)}, 1fr)`, gap: '12px' }}>
+                  {Array.from({ length: selectedTask.faultPhotos }).slice(0, 3).map((_, i) => (
+                    <div key={i} style={{ height: '80px', borderRadius: '16px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                      📷
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
           </div>
         </Modal>
       )}

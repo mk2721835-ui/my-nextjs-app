@@ -13,7 +13,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Flame
+  Flame,
+  Settings
 } from 'lucide-react';
 
 const NAV_DATA = [
@@ -49,6 +50,12 @@ const NAV_DATA = [
     section: 'Fleet',
     items: [
       { id: 'fleet', icon: Car, label: 'Fleet / Vehicles' },
+    ],
+  },
+  {
+    section: 'System',
+    items: [
+      { id: 'settings', icon: Settings, label: 'Settings' },
     ],
   },
 ];
