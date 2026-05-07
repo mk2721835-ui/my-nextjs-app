@@ -391,11 +391,11 @@ export default function Maintenance() {
   const [viewTab, setViewTab]             = useState('client')
   const [selected, setSelected]           = useState(null)
   const [assignTech, setAssignTech]       = useState('')
-  const [assignMode, setAssignMode]       = useState('single')
-  const [selectedTeam, setSelectedTeam]   = useState(null)
+  const [assignMode, setAssignMode] = useState('single')
+  const [selectedRequest, setSelectedRequest] = useState(null)
+  const [mounted, setMounted]   = useState(false)
   const [multiTechs, setMultiTechs]       = useState([])
   const [newStatus, setNewStatus]         = useState('')
-  const [mounted, setMounted] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -882,8 +882,12 @@ export default function Maintenance() {
                       partsRequests.filter(p => p.requestId === selected.id).map(req => (
                         <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                           <div>
-                            <div style={{ fontWeight: 800, fontSize: '13px', color: '#1e293b' }}>{req.part} <span style={{ color: '#94a3b8', fontSize: '11px', fontWeight: 700 }}>(x{req.qty})</span></div>
+                            <div style={{ fontWeight: 800, fontSize: '13px', color: '#1e293b' }}>
+                              {req.items[0]?.part} {req.items.length > 1 ? `(+${req.items.length - 1})` : ''} 
+                              <span style={{ color: '#94a3b8', fontSize: '11px', fontWeight: 700, marginLeft: '8px' }}>(x{req.items.reduce((sum, i) => sum + i.qty, 0)})</span>
+                            </div>
                             <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', fontWeight: 600 }}>ID: {req.id} · {req.date}</div>
+                            <button className="btn btn-ghost btn-sm" style={{ padding: 0, fontSize: '10px', height: 'auto', minHeight: 0, marginTop: '4px' }} onClick={() => setSelectedRequest(req)}>View Manifest</button>
                           </div>
                           <div style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, background: req.status === 'Approved' ? '#ecfdf5' : req.status === 'Rejected' ? '#fef2f2' : '#fffbeb', color: req.status === 'Approved' ? '#10b981' : req.status === 'Rejected' ? '#ef4444' : '#f59e0b' }}>
                             {req.status.toUpperCase()}
@@ -1078,6 +1082,43 @@ export default function Maintenance() {
           <div className="form-group" style={{ marginTop: '24px' }}>
             <label className="form-label" style={{ fontSize: '11px', letterSpacing: '1px' }}>PROBLEM MANIFEST</label>
             <textarea className="form-control" style={{ borderRadius: '16px', minHeight: '120px', padding: '16px' }} placeholder="Provide a detailed technical overview of the issue..." />
+          </div>
+        </Modal>
+      )}
+
+      {selectedRequest && (
+        <Modal title={`Technical Manifest Audit: ${selectedRequest.id}`} onClose={() => setSelectedRequest(null)} size="md">
+          <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 900, color: '#8b5cf6', letterSpacing: '1px', marginBottom: '4px' }}>PARTS MANIFEST</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{selectedRequest.tech}</div>
+              </div>
+              <div style={{ padding: '8px 16px', borderRadius: '12px', background: selectedRequest.status === 'Approved' ? '#ecfdf5' : '#fffbeb', color: selectedRequest.status === 'Approved' ? '#10b981' : '#f59e0b', fontSize: '12px', fontWeight: 900 }}>
+                {selectedRequest.status.toUpperCase()}
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9', marginBottom: '24px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', marginBottom: '16px' }}>RESOURCE ALLOCATION</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {selectedRequest.items.map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontWeight: 800, fontSize: '14px', color: '#1e293b' }}>{item.part}</div>
+                    <div style={{ fontSize: '16px', fontWeight: 950, color: '#8b5cf6' }}>x{item.qty}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedRequest.reason && (
+              <div style={{ background: '#8b5cf608', padding: '24px', borderRadius: '24px', border: '1px dashed #8b5cf630' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#8b5cf6', marginBottom: '8px', letterSpacing: '1px' }}>DIAGNOSTIC JUSTIFICATION</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b', lineHeight: 1.5 }}>{selectedRequest.reason}</div>
+              </div>
+            )}
+
+            <button className="btn btn-ghost" style={{ width: '100%', marginTop: '32px', borderRadius: '16px', padding: '14px' }} onClick={() => setSelectedRequest(null)}>Dismiss Audit</button>
           </div>
         </Modal>
       )}

@@ -409,6 +409,7 @@ export default function UserManagement() {
   const [selectedVehicle, setSelectedVehicle] = useState(null)
   const [selectedDevice, setSelectedDevice] = useState(null)
   const [selectedTask, setSelectedTask] = useState(null)
+  const [selectedRequest, setSelectedRequest] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
   const [form, setForm]         = useState({ name:'', role:'Client', email:'', phone:'', city:'', status:'Active' })
   const [mounted, setMounted]   = useState(false)
@@ -666,72 +667,112 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(u => (
-                <tr key={u.id} onClick={() => openView(u)} style={{ transition: 'all 0.2s' }}>
-                  <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-                      <div className="avatar" style={{ 
-                        background: u.color, 
-                        width: '48px', 
-                        height: '48px', 
-                        borderRadius: '16px',
-                        fontSize: '18px',
-                        fontWeight: 900,
-                        boxShadow: `0 8px 16px ${u.color}30`
-                      }}>{u.initials}</div>
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{u.name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>{u.email}</div>
+               {tab === 'teams' ? (
+                teams.map(team => (
+                  <tr key={team.id} style={{ transition: 'all 0.2s' }}>
+                    <td style={{ padding: '20px 24px' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+                        <div style={{ background: `${team.color}15`, color: team.color, width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Layers size={24} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{team.name}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>{team.area}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      gap: 8,
-                      background: `${ROLE_COLORS[u.role] || '#475569'}10`, 
-                      color: ROLE_COLORS[u.role] || '#475569',
-                      fontSize: '11px', 
-                      fontWeight: 900, 
-                      padding: '6px 14px', 
-                      borderRadius: '10px',
-                      letterSpacing: '0.5px'
-                    }}>
-                      <Briefcase size={12} />
-                      {u.role.toUpperCase()}
-                    </div>
-                  </td>
-                  <td style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>{u.phone}</td>
-                  <td style={{ fontSize: '13px', color: '#64748b' }}>{u.city || '—'}</td>
-                  <td>
-                    <div className={`badge badge-${STATUS_COLORS[u.status] || 'gray'}`} style={{ 
-                      borderRadius: '10px', 
-                      padding: '6px 14px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      gap: 8
-                    }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'currentColor', boxShadow: '0 0 10px currentColor' }} />
-                      {u.status}
-                    </div>
-                  </td>
-                  <td style={{ fontSize: '12px', color: '#94a3b8' }}>{u.joinDate}</td>
-                  <td onClick={e => e.stopPropagation()}>
-                    <div className="table-actions" style={{ gap: '10px' }}>
-                      <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openView(u)}>
-                        <Eye size={16} />
-                      </button>
-                      <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={e => openEdit(u, e)}>
-                        <Pencil size={16} />
-                      </button>
-                      <button className="btn btn-danger btn-sm" style={{ width: '36px', height: '36px' }} onClick={e => openDelete(u, e)}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#f8fafc', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '12px' }}>{users.find(u => u.id === team.leadId)?.initials}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700 }}>{team.leadName}</div>
+                      </div>
+                    </td>
+                    <td style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>{team.members.length} Members</td>
+                    <td style={{ fontSize: '13px', color: '#64748b' }}>{team.area}</td>
+                    <td>
+                      <div style={{ color: '#10b981', fontSize: '11px', fontWeight: 900 }}>{team.activeJobs} ACTIVE JOBS</div>
+                    </td>
+                    <td style={{ fontSize: '12px', color: '#94a3b8' }}>{team.id}</td>
+                    <td>
+                      <div className="table-actions" style={{ gap: '10px' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => toast('Team analytics loading...', 'info')}>
+                          <Activity size={16} />
+                        </button>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => setModal('edit_team')}>
+                          <Settings size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                filtered.map(u => (
+                  <tr key={u.id} onClick={() => openView(u)} style={{ transition: 'all 0.2s' }}>
+                    <td style={{ padding: '20px 24px' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+                        <div className="avatar" style={{ 
+                          background: u.color, 
+                          width: '48px', 
+                          height: '48px', 
+                          borderRadius: '16px',
+                          fontSize: '18px',
+                          fontWeight: 900,
+                          boxShadow: `0 8px 16px ${u.color}30`
+                        }}>{u.initials}</div>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>{u.name}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>{u.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: 8,
+                        background: `${ROLE_COLORS[u.role] || '#475569'}10`, 
+                        color: ROLE_COLORS[u.role] || '#475569',
+                        fontSize: '11px', 
+                        fontWeight: 900, 
+                        padding: '6px 14px', 
+                        borderRadius: '10px',
+                        letterSpacing: '0.5px'
+                      }}>
+                        <Briefcase size={12} />
+                        {u.role.toUpperCase()}
+                      </div>
+                    </td>
+                    <td style={{ fontSize: '13px', color: '#334155', fontWeight: 600 }}>{u.phone}</td>
+                    <td style={{ fontSize: '13px', color: '#64748b' }}>{u.city || '—'}</td>
+                    <td>
+                      <div className={`badge badge-${STATUS_COLORS[u.status] || 'gray'}`} style={{ 
+                        borderRadius: '10px', 
+                        padding: '6px 14px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        gap: 8
+                      }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'currentColor', boxShadow: '0 0 10px currentColor' }} />
+                        {u.status}
+                      </div>
+                    </td>
+                    <td style={{ fontSize: '12px', color: '#94a3b8' }}>{u.joinDate}</td>
+                    <td onClick={e => e.stopPropagation()}>
+                      <div className="table-actions" style={{ gap: '10px' }}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openView(u)}>
+                          <Eye size={16} />
+                        </button>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={e => openEdit(u, e)}>
+                          <Pencil size={16} />
+                        </button>
+                        <button className="btn btn-danger btn-sm" style={{ width: '36px', height: '36px' }} onClick={e => openDelete(u, e)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
           <div className="table-pagination" style={{ padding: '24px' }}>
@@ -1137,7 +1178,7 @@ export default function UserManagement() {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '11px', fontWeight: 900, color: req.status === 'Approved' ? '#10b981' : '#f59e0b' }}>{req.status.toUpperCase()}</div>
-                        <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>Req: {req.requestId}</div>
+                        <button className="btn btn-ghost btn-sm" style={{ fontSize: '11px', fontWeight: 800 }} onClick={() => setSelectedRequest(req)}>View Manifest</button>
                       </div>
                     </div>
                   ))}
@@ -1729,6 +1770,43 @@ export default function UserManagement() {
                 <option key={u.id} value={u.id}>{u.name}</option>
               ))}
             </select>
+          </div>
+        </Modal>
+      )}
+
+      {selectedRequest && (
+        <Modal title={`Logistics Manifest: ${selectedRequest.id}`} onClose={() => setSelectedRequest(null)} size="md">
+          <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', letterSpacing: '1px', marginBottom: '4px' }}>PARTS REQUEST</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{selectedRequest.tech}</div>
+              </div>
+              <div style={{ padding: '8px 16px', borderRadius: '12px', background: selectedRequest.status === 'Approved' ? '#ecfdf5' : '#fffbeb', color: selectedRequest.status === 'Approved' ? '#10b981' : '#f59e0b', fontSize: '12px', fontWeight: 900 }}>
+                {selectedRequest.status.toUpperCase()}
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9', marginBottom: '24px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '12px' }}>MANIFEST ITEMS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {selectedRequest.items.map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '14px' }}>
+                    <div style={{ fontWeight: 800, fontSize: '14px' }}>{item.part}</div>
+                    <div style={{ fontWeight: 950, color: '#3b82f6' }}>x{item.qty}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '8px' }}>DIAGNOSTIC REASON</div>
+              <p style={{ fontSize: '13px', fontWeight: 700, color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                {selectedRequest.reason || 'Requested for active maintenance ticket.'}
+              </p>
+            </div>
+
+            <button className="btn btn-ghost" style={{ width: '100%', marginTop: '24px', borderRadius: '16px' }} onClick={() => setSelectedRequest(null)}>Dismiss Manifest</button>
           </div>
         </Modal>
       )}

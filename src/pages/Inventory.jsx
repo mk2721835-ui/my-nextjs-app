@@ -545,15 +545,19 @@ export default function Inventory() {
               </div>
 
               {req.status === 'Pending' ? (
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', border: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 800 }} onClick={() => handleReject(req)}>REJECT</button>
-                  <button className="btn btn-primary" style={{ flex: 2, borderRadius: '14px', background: '#0f172a', fontWeight: 800 }} onClick={() => handleApprove(req)}>APPROVE & ALLOCATE</button>
-                </div>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                    <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: 800, fontSize: '12px' }} onClick={() => { setSelected(req); setModal('view-request') }}>VIEW FULL DETAILS</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', border: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 800 }} onClick={() => handleReject(req)}>REJECT</button>
+                    <button className="btn btn-primary" style={{ flex: 2, borderRadius: '14px', background: '#0f172a', fontWeight: 800 }} onClick={() => handleApprove(req)}>APPROVE & ALLOCATE</button>
+                  </div>
               ) : (
-                <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  {req.status === 'Approved' ? <CheckCircle size={14} color="#10b981" /> : <XCircle size={14} color="#ef4444" />}
-                  Request processed on {req.date}
-                </div>
+                  <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
+                    {req.status === 'Approved' ? <CheckCircle size={14} color="#10b981" /> : <XCircle size={14} color="#ef4444" />}
+                    Request processed on {req.date}
+                  </div>
+                  <button className="btn btn-ghost" style={{ width: '100%', borderRadius: '14px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: 800, fontSize: '12px' }} onClick={() => { setSelected(req); setModal('view-request') }}>VIEW LOGS & DETAILS</button>
               )}
             </div>
           ))}
@@ -579,7 +583,7 @@ export default function Inventory() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
             {[
               { label: 'QUANTITY', val: selected.qty, color: STOCK_META[selected.status].color },
               { label: 'MINIMUM', val: selected.minQty, color: '#475569' },
@@ -590,6 +594,30 @@ export default function Inventory() {
                 <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginTop: '4px' }}>{i.label}</div>
               </div>
             ))}
+          </div>
+
+          <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', marginBottom: '12px', letterSpacing: '1px' }}>USAGE HISTORY & ALLOCATIONS</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+            {partsReqs.filter(r => r.items.some(item => item.partCode === selected.code)).length > 0 ? (
+              partsReqs.filter(r => r.items.some(item => item.partCode === selected.code)).map(r => (
+                <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '12px 16px', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: r.status === 'Approved' ? '#10b981' : '#f59e0b' }} />
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 800 }}>{r.tech}</div>
+                      <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>{r.date}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 950, color: '#3b82f6' }}>
+                    {r.items.find(i => i.partCode === selected.code)?.qty} Units
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ textAlign: 'center', padding: '24px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #e2e8f0', color: '#94a3b8', fontSize: '12px', fontWeight: 700 }}>
+                No historical allocations found for this asset.
+              </div>
+            )}
           </div>
         </Modal>
       )}
@@ -670,6 +698,84 @@ export default function Inventory() {
             <div className="form-group">
               <label className="form-label" style={{ fontSize: '11px', letterSpacing: '1px' }}>LOW STOCK THRESHOLD</label>
               <input className="form-control" style={{ borderRadius: '16px', fontWeight: 900 }} type="number" defaultValue={5} />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'view-request' && selected && (
+        <Modal title={`Allocation Intelligence: ${selected.id}`} onClose={() => setModal(null)} size="lg">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '28px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{selected.tech.charAt(0)}</div>
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 900 }}>{selected.tech}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>FIELD TECHNICIAN</div>
+                  </div>
+                </div>
+                
+                <div style={{ background: 'white', padding: '16px', borderRadius: '16px', border: '1px solid #f1f5f9', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>PARENT SERVICE TICKET</div>
+                  <div style={{ fontSize: '15px', fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace' }}>{selected.requestId}</div>
+                </div>
+
+                <div style={{ background: 'white', padding: '16px', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', marginBottom: '4px' }}>SUBMISSION TIMESTAMP</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800 }}>{selected.date}</div>
+                </div>
+              </div>
+
+              {selected.reason && (
+                <div style={{ background: '#f59e0b08', padding: '20px', borderRadius: '24px', border: '1px dashed #f59e0b30' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 900, color: '#f59e0b', marginBottom: '8px', letterSpacing: '1px' }}>DIAGNOSTIC REASONING</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', lineHeight: 1.5 }}>{selected.reason}</div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', marginBottom: '16px', letterSpacing: '1px' }}>REQUESTED ASSET MANIFEST</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {selected.items.map((item, idx) => {
+                  const partData = spareParts.find(p => p.code === item.partCode)
+                  return (
+                    <div key={idx} style={{ background: 'white', padding: '20px', borderRadius: '24px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ fontSize: '24px' }}>{CAT_ICON[partData?.category] || '📦'}</div>
+                        <div>
+                          <div style={{ fontWeight: 900, fontSize: '15px', color: '#0f172a' }}>{item.part}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, fontFamily: 'monospace' }}>{item.partCode}</div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '18px', fontWeight: 950, color: '#3b82f6' }}>x{item.qty}</div>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>UNITS</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div style={{ marginTop: '32px', padding: '24px', background: '#f8fafc', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 900, color: '#94a3b8' }}>ALLOCATION STATUS</div>
+                  <div style={{ 
+                    background: selected.status === 'Pending' ? '#f59e0b15' : selected.status === 'Rejected' ? '#ef444415' : '#10b98115', 
+                    color: selected.status === 'Pending' ? '#f59e0b' : selected.status === 'Rejected' ? '#ef4444' : '#10b981', 
+                    padding: '4px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 
+                  }}>
+                    {selected.status.toUpperCase()}
+                  </div>
+                </div>
+                {selected.status === 'Pending' && (
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', background: 'white', border: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 800 }} onClick={() => { handleReject(selected); setModal(null) }}>REJECT</button>
+                    <button className="btn btn-primary" style={{ flex: 2, borderRadius: '14px', background: '#0f172a', fontWeight: 800 }} onClick={() => { handleApprove(selected); setModal(null) }}>APPROVE & ALLOCATE</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Modal>
