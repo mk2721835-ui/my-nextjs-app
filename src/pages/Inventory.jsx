@@ -545,6 +545,7 @@ export default function Inventory() {
               </div>
 
               {req.status === 'Pending' ? (
+                <>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                     <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: 800, fontSize: '12px' }} onClick={() => { setSelected(req); setModal('view-request') }}>VIEW FULL DETAILS</button>
                   </div>
@@ -552,12 +553,15 @@ export default function Inventory() {
                     <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', border: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 800 }} onClick={() => handleReject(req)}>REJECT</button>
                     <button className="btn btn-primary" style={{ flex: 2, borderRadius: '14px', background: '#0f172a', fontWeight: 800 }} onClick={() => handleApprove(req)}>APPROVE & ALLOCATE</button>
                   </div>
+                </>
               ) : (
+                <>
                   <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
                     {req.status === 'Approved' ? <CheckCircle size={14} color="#10b981" /> : <XCircle size={14} color="#ef4444" />}
                     Request processed on {req.date}
                   </div>
                   <button className="btn btn-ghost" style={{ width: '100%', borderRadius: '14px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: 800, fontSize: '12px' }} onClick={() => { setSelected(req); setModal('view-request') }}>VIEW LOGS & DETAILS</button>
+                </>
               )}
             </div>
           ))}
