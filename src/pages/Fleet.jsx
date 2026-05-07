@@ -63,21 +63,21 @@ const LOG_META = {
 
 function VTog({ mode, setMode }) {
   return (
-    <div style={{ display: 'flex', gap: 4, background: '#e2e8f0', borderRadius: '16px', padding: '4px' }}>
+    <div style={{ display: 'flex', gap: '6px', background: '#f1f5f9', borderRadius: '14px', padding: '5px', border: '1px solid #e2e8f0' }}>
       {[
         { id: 'grid', icon: LayoutGrid, label: 'Catalog' },
         { id: 'table', icon: List, label: 'Manifest' }
       ].map(({ id, icon: Icon, label }) => (
         <button key={id} onClick={() => setMode(id)}
           style={{ 
-            padding: '8px 18px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 800,
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: mode === id ? '#0f172a' : 'transparent',
-            boxShadow: mode === id ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+            padding: '8px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900,
+            display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '0.5px',
+            background: mode === id ? '#b91c1c' : 'transparent',
+            boxShadow: mode === id ? '0 8px 16px -4px rgba(185, 28, 28, 0.25)' : 'none',
             color: mode === id ? 'white' : '#64748b',
-            transition: 'all 0.3s',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           }}>
-          <Icon size={14} /> {label}
+          <Icon size={14} strokeWidth={2.5} /> {label.toUpperCase()}
         </button>
       ))}
     </div>

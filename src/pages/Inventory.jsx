@@ -45,21 +45,21 @@ const CAT_ICON = {
 
 function VTog({ mode, setMode }) {
   return (
-    <div style={{ display: 'flex', gap: 4, background: '#e2e8f0', borderRadius: '16px', padding: '4px' }}>
+    <div style={{ display: 'flex', gap: '6px', background: '#f1f5f9', borderRadius: '14px', padding: '5px', border: '1px solid #e2e8f0' }}>
       {[
-        { id: 'grid', icon: LayoutGrid, label: 'Cards' },
-        { id: 'table', icon: List, label: 'List' }
+        { id: 'grid', icon: LayoutGrid, label: 'Catalog' },
+        { id: 'table', icon: List, label: 'Manifest' }
       ].map(({ id, icon: Icon, label }) => (
         <button key={id} onClick={() => setMode(id)}
           style={{ 
-            padding: '8px 18px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 800,
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: mode === id ? '#0f172a' : 'transparent',
-            boxShadow: mode === id ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+            padding: '8px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900,
+            display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '0.5px',
+            background: mode === id ? '#b91c1c' : 'transparent',
+            boxShadow: mode === id ? '0 8px 16px -4px rgba(185, 28, 28, 0.25)' : 'none',
             color: mode === id ? 'white' : '#64748b',
-            transition: 'all 0.3s',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           }}>
-          <Icon size={14} /> {label}
+          <Icon size={14} strokeWidth={2.5} /> {label.toUpperCase()}
         </button>
       ))}
     </div>
@@ -203,6 +203,7 @@ export default function Inventory() {
   const [reqFilter, setReqFilter] = useState('All')
   const [viewMode, setViewMode]   = useState('grid')
   const [mounted, setMounted] = useState(false)
+  const [partsReqs, setPartsReqs] = useState(partsRequests)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -212,15 +213,21 @@ export default function Inventory() {
     return matchSearch && matchStatus
   })
 
-  const filteredReqs = partsRequests.filter(r => reqFilter === 'All' || r.status === reqFilter)
+  const filteredReqs = partsReqs.filter(r => reqFilter === 'All' || r.status === reqFilter)
 
   const inStock    = spareParts.filter(p => p.status === 'In Stock').length
   const lowStock   = spareParts.filter(p => p.status === 'Low Stock').length
   const outStock   = spareParts.filter(p => p.status === 'Out of Stock').length
-  const pendingReqs = partsRequests.filter(p => p.status === 'Pending').length
+  const pendingReqs = partsReqs.filter(p => p.status === 'Pending').length
 
-  const handleApprove = req => { toast(`Parts request ${req.id} approved`, 'success'); setModal(null) }
-  const handleReject  = req => { toast(`Parts request ${req.id} rejected`, 'warning'); setModal(null) }
+  const handleApprove = req => { 
+    setPartsReqs(prev => prev.map(r => r.id === req.id ? { ...r, status: 'Approved' } : r))
+    toast(`Parts request ${req.id} approved`, 'success')
+  }
+  const handleReject  = req => { 
+    setPartsReqs(prev => prev.map(r => r.id === req.id ? { ...r, status: 'Rejected' } : r))
+    toast(`Parts request ${req.id} rejected`, 'warning')
+  }
 
   return (
     <div style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease' }}>
@@ -341,7 +348,7 @@ export default function Inventory() {
         <div style={{ display: 'flex', gap: '8px' }}>
           {[
             { id:'parts',    label:'Asset Catalog', icon: ClipboardList, count: spareParts.length },
-            { id:'requests', label:'Field Allocations', icon: Truck, count: partsRequests.length },
+            { id:'requests', label:'Field Allocations', icon: Truck, count: partsReqs.length },
           ].map(t => (
             <button key={t.id} 
               onClick={() => { setTab(t.id); setViewMode('grid') }}
@@ -498,7 +505,7 @@ export default function Inventory() {
 
       {/* ── REQUESTS VIEW ── */}
       {tab === 'requests' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '32px' }}>
           {filteredReqs.map((req, idx) => (
             <div key={req.id} className="glass-card" style={{ padding: '24px', borderRadius: '32px', animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -506,35 +513,45 @@ export default function Inventory() {
                   <div style={{ fontSize: '12px', fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace' }}>{req.id}</div>
                   <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{req.date}</div>
                 </div>
-                <div style={{ background: req.status === 'Pending' ? '#f59e0b15' : '#10b98115', color: req.status === 'Pending' ? '#f59e0b' : '#10b981', padding: '4px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 }}>{req.status.toUpperCase()}</div>
-              </div>
-              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '20px', border: '1px solid #f1f5f9', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{req.tech.charAt(0)}</div>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 800 }}>{req.tech}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>Assigned Technician</div>
-                  </div>
-                </div>
-                <div style={{ height: '1px', background: '#e2e8f0', margin: '12px 0' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>ALLOCATION UNIT</div>
-                    <div style={{ fontSize: '14px', fontWeight: 800 }}>{req.part}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>QTY</div>
-                    <div style={{ fontSize: '14px', fontWeight: 900, color: '#3b82f6' }}>{req.qty} UNITS</div>
-                  </div>
+                <div style={{ 
+                  background: req.status === 'Pending' ? '#f59e0b15' : req.status === 'Rejected' ? '#ef444415' : '#10b98115', 
+                  color: req.status === 'Pending' ? '#f59e0b' : req.status === 'Rejected' ? '#ef4444' : '#10b981', 
+                  padding: '4px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 
+                }}>
+                  {req.status.toUpperCase()}
                 </div>
               </div>
+              
+              <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '24px', border: '1px solid #f1f5f9', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '16px' }}>{req.tech.charAt(0)}</div>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>{req.tech}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Technical Operative</div>
+                  </div>
+                </div>
+                
+                <div style={{ height: '1px', background: '#e2e8f0', margin: '16px 0' }} />
+                
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '1px', marginBottom: '12px' }}>REQUESTED MANIFEST</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {req.items.map((item, iIdx) => (
+                    <div key={iIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '10px 14px', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>{item.part}</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', background: '#3b82f610', padding: '4px 10px', borderRadius: '8px' }}>{item.qty} UNITS</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {req.status === 'Pending' ? (
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px' }} onClick={() => handleReject(req)}>REJECT</button>
-                  <button className="btn btn-primary" style={{ flex: 2, borderRadius: '14px', background: '#0f172a' }} onClick={() => handleApprove(req)}>ALLOCATE ASSETS</button>
+                  <button className="btn btn-ghost" style={{ flex: 1, borderRadius: '14px', border: '1px solid #e2e8f0', color: '#ef4444', fontWeight: 800 }} onClick={() => handleReject(req)}>REJECT</button>
+                  <button className="btn btn-primary" style={{ flex: 2, borderRadius: '14px', background: '#0f172a', fontWeight: 800 }} onClick={() => handleApprove(req)}>APPROVE & ALLOCATE</button>
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '10px', borderRadius: '14px' }}>
+                <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 800, color: '#64748b', background: '#f1f5f9', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  {req.status === 'Approved' ? <CheckCircle size={14} color="#10b981" /> : <XCircle size={14} color="#ef4444" />}
                   Request processed on {req.date}
                 </div>
               )}
@@ -645,9 +662,15 @@ export default function Inventory() {
               <input className="form-control" style={{ borderRadius: '16px', fontWeight: 900 }} type="number" />
             </div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px dashed #3b82f6' }}>
-            <div style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', marginBottom: '8px' }}>AUTOMATED REORDER PROTOCOL</div>
-            <p style={{ fontSize: '14px', color: '#475569', margin: 0, fontWeight: 500 }}>System will trigger a logistical alert when physical units fall below the minimum safety threshold defined above.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', letterSpacing: '1px' }}>INITIAL QUANTITY</label>
+              <input className="form-control" style={{ borderRadius: '16px', fontWeight: 900 }} type="number" defaultValue={0} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', letterSpacing: '1px' }}>LOW STOCK THRESHOLD</label>
+              <input className="form-control" style={{ borderRadius: '16px', fontWeight: 900 }} type="number" defaultValue={5} />
+            </div>
           </div>
         </Modal>
       )}

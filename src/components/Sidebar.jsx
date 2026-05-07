@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  Settings
+  Settings,
+  MessageSquare
 } from 'lucide-react';
 
 const NAV_DATA = [
@@ -34,8 +35,7 @@ const NAV_DATA = [
   {
     section: 'Finance',
     items: [
-      { id: 'accounting', icon: DollarSign, label: 'Accounting', badge: 2 },
-      { id: 'installments', icon: CreditCard, label: 'Installments', badge: 1 },
+      { id: 'accounting', icon: DollarSign, label: 'Accounting System', badge: 3 },
     ],
   },
   {
@@ -55,6 +55,7 @@ const NAV_DATA = [
   {
     section: 'System',
     items: [
+      { id: 'chat', icon: MessageSquare, label: 'Communication' },
       { id: 'settings', icon: Settings, label: 'Settings' },
     ],
   },

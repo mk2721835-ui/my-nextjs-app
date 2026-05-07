@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, Legend, AreaChart, Area
 } from 'recharts'
 import Modal from '../components/Modal'
-import { invoices, monthlyRevenue, users } from '../data'
+import { invoices, monthlyRevenue, users, technicianCashBalances, cashSubmissions, installmentPlans } from '../data'
 import { useToast } from '../App'
 import { 
   Wallet, 
@@ -32,7 +32,10 @@ import {
   MoreVertical,
   ChevronRight,
   ArrowRight,
-  Eye
+  Eye,
+  Banknote,
+  Send,
+  UserCheck
 } from 'lucide-react'
 
 const STATUS_META = {
@@ -60,6 +63,84 @@ function VTog({ mode, setMode }) {
           <Icon size={14} /> {label}
         </button>
       ))}
+    </div>
+  )
+}
+
+const INSTALLMENT_STATUS_META = {
+  Active:    { color: '#3B82F6', icon: Activity, label: 'Active' },
+  Completed: { color: '#10B981', icon: CheckCircle, label: 'Full' },
+  Overdue:   { color: '#EF4444', icon: AlertCircle, label: 'Delinquent' },
+  Paused:    { color: '#F59E0B', icon: Clock, label: 'On Hold' }
+}
+
+function CreativeInstallmentCard({ plan, onView, onRecordPayment }) {
+  const [hovered, setHovered] = useState(false)
+  const meta = INSTALLMENT_STATUS_META[plan.status] || INSTALLMENT_STATUS_META.Active
+  const StatusIcon = meta.icon
+  const pct = Math.round((plan.paid / plan.totalAmount) * 100)
+  const isOverdue = plan.status === 'Overdue'
+
+  return (
+    <div 
+      className="glass-card"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: '28px',
+        borderRadius: '32px',
+        position: 'relative',
+        cursor: 'pointer',
+        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        transform: hovered ? 'translateY(-12px)' : 'translateY(0)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        boxShadow: hovered 
+          ? `0 30px 60px -12px ${meta.color}20` 
+          : '0 4px 20px -5px rgba(0,0,0,0.05)',
+        overflow: 'hidden',
+        background: hovered ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.8)',
+      }}
+      onClick={() => onView(plan)}
+    >
+      <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', border: `12px solid ${meta.color}08`, borderRadius: '50%', zIndex: 0 }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: meta.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 10px 20px ${meta.color}30` }}><StatusIcon size={24} /></div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 950, color: '#0f172a' }}>{plan.client}</div>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>{plan.id}</div>
+          </div>
+        </div>
+        <div style={{ background: isOverdue ? '#ef4444' : '#f1f5f9', color: isOverdue ? 'white' : '#64748b', fontSize: '10px', fontWeight: 900, padding: '4px 12px', borderRadius: '99px', letterSpacing: '0.5px' }}>{plan.status.toUpperCase()}</div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 1 }}><Receipt size={14} color="#94a3b8" /><span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>{plan.product}</span></div>
+      <div style={{ background: isOverdue ? '#fff5f5' : '#f8fafc', padding: '20px', borderRadius: '24px', border: `1px solid ${isOverdue ? '#feb2b2' : '#f1f5f9'}`, position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <div>
+            <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>REPAYMENT FLOW</div>
+            <div style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a' }}><span style={{ fontSize: '12px', color: '#94a3b8', marginRight: '2px' }}>SAR</span>{plan.paid.toLocaleString()}</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '4px' }}>REMAINING</div>
+            <div style={{ fontSize: '20px', fontWeight: 950, color: isOverdue ? '#ef4444' : '#0f172a' }}>{plan.remaining.toLocaleString()}</div>
+          </div>
+        </div>
+        <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}><div style={{ width: `${pct}%`, height: '100%', background: meta.color, borderRadius: '4px', transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)' }} /></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: 800, color: '#64748b' }}><span>{pct}% PROTOCOL COMPLETED</span><span>{plan.paymentsCompleted}/{plan.paymentsTotal} STAGES</span></div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DollarSign size={16} color="#3b82f6" /></div>
+          <div><div style={{ fontSize: '13px', fontWeight: 950, color: '#0f172a' }}>SAR {plan.monthlyPayment.toLocaleString()}</div><div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8' }}>MONTHLY REVENUE</div></div>
+        </div>
+        <div style={{ textAlign: 'right' }}><div style={{ fontSize: '11px', fontWeight: 900, color: isOverdue ? '#ef4444' : '#0f172a' }}>{plan.nextDue || 'N/A'}</div><div style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8' }}>NEXT PAYMENT</div></div>
+      </div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(10px)', height: hovered ? '64px' : '0px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', opacity: hovered ? 1 : 0, zIndex: 2 }} onClick={e => e.stopPropagation()}>
+        <button onClick={() => onView(plan)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800 }}><Clock size={16} /> SCHEDULE</button>
+        {plan.status !== 'Completed' && <button onClick={() => onRecordPayment(plan)} style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800 }}><Wallet size={16} /> COLLECT</button>}
+      </div>
     </div>
   )
 }
@@ -215,7 +296,8 @@ export default function Accounting() {
   const [selected, setSelected]     = useState(null)
   const [statusFilter, setStatusFilter] = useState('All')
   const [viewMode, setViewMode]     = useState('grid')
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted]       = useState(false)
+  const [reportPeriod, setReportPeriod] = useState('Monthly') // Monthly | Annual
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -243,6 +325,17 @@ export default function Accounting() {
   const fTotalRevenue  = monthlyRevenue.reduce((s, m) => s + m.revenue, 0)
   const fTotalExpenses = monthlyRevenue.reduce((s, m) => s + m.expenses, 0)
   const fTotalProfit   = fTotalRevenue - fTotalExpenses
+
+  const annualData = [
+    { year: '2022', revenue: 450000, expenses: 210000, profit: 240000 },
+    { year: '2023', revenue: 580000, expenses: 260000, profit: 320000 },
+    { year: '2024', revenue: 720000, expenses: 310000, profit: 410000 },
+    { year: '2025', revenue: 890000, expenses: 380000, profit: 510000 },
+    { year: '2026', revenue: 420000, expenses: 180000, profit: 240000 }, // YTD
+  ]
+
+  const totalInstallmentRevenue = installmentPlans.reduce((s, p) => s + p.paid, 0)
+  const totalOverdueInstallments = installmentPlans.filter(p => p.status === 'Overdue').reduce((s, p) => s + p.remaining, 0)
 
   return (
     <div style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease' }}>
@@ -302,9 +395,9 @@ export default function Accounting() {
       {/* KPI Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
         {[
-          { label:'Capital Collected', val:totalRevenue, icon:CheckCircle, color:'#10B981', filter:'Paid' },
+          { label:'Capital Collected', val:totalRevenue + totalInstallmentRevenue, icon:CheckCircle, color:'#10B981', filter:'Paid' },
           { label:'Pending Revenue',  val:totalPending, icon:Clock, color:'#F59E0B', filter:'Pending' },
-          { label:'Critical Overdue',  val:totalOverdue, icon:AlertCircle, color:'#EF4444', filter:'Overdue' },
+          { label:'Critical Overdue',  val:totalOverdue + totalOverdueInstallments, icon:AlertCircle, color:'#EF4444', filter:'Overdue' },
         ].map((s, idx) => (
           <div key={s.label} 
             className="glass-card" 
@@ -350,6 +443,8 @@ export default function Accounting() {
           {[
             { id:'invoices', label:'Invoice Ledger', icon: FileText },
             { id:'payments', label:'Payment Log',    icon: Receipt },
+            { id:'installments', label:'Installments', icon: CreditCard },
+            { id:'balances', label:'Tech Balances',  icon: Banknote },
             { id:'reports',  label:'Fiscal Reports', icon: TrendingUp },
           ].map(t => (
             <button key={t.id} 
@@ -577,49 +672,191 @@ export default function Accounting() {
         </>
       )}
 
-      {/* ── REPORTS TAB ── */}
-      {tab === 'reports' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-          <div className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 950, margin: 0 }}>Revenue Dynamics</h3>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', background: '#3b82f615', padding: '6px 14px', borderRadius: '10px' }}>LAST 6 MONTHS</div>
+      {/* ── INSTALLMENTS TAB ── */}
+      {tab === 'installments' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '32px', animation: 'fadeIn 0.5s ease-out' }}>
+          {installmentPlans.map((plan, idx) => (
+            <div key={plan.id} style={{ animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
+              <CreativeInstallmentCard 
+                plan={plan} 
+                onView={p => { setSelected(p); setModal('view_installment') }}
+                onRecordPayment={p => toast(`Collect SAR ${p.monthlyPayment}`, 'info')}
+              />
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={financialData}>
-                <defs>
-                  <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} tickFormatter={v => `${v/1000}k`} />
-                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} />
-                <Area type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorProfit)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 950, margin: 0 }}>Fiscal Comparison</h3>
-              <button className="btn btn-ghost btn-sm" style={{ borderRadius: '12px' }}>Full Report</button>
+          ))}
+          <div 
+            className="glass-card" 
+            style={{ 
+              border: '2px dashed #e2e8f0', background: 'transparent', borderRadius: '32px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '340px', cursor: 'pointer'
+            }}
+            onClick={() => setModal('create')}
+          >
+            <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <Plus size={40} />
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a' }}>New Plan</div>
+              <div style={{ fontSize: '13px', marginTop: '8px', fontWeight: 600 }}>Initialize credit protocol</div>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={financialData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} />
-                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} />
-                <Bar dataKey="revenue" fill="#10B981" radius={[8, 8, 0, 0]} barSize={20} />
-                <Bar dataKey="expenses" fill="#EF4444" radius={[8, 8, 0, 0]} barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       )}
+
+      {/* ── REPORTS TAB ── */}
+      {tab === 'reports' && (
+        <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '40px' }}>
+            {['Monthly', 'Annual'].map(p => (
+              <button key={p} 
+                onClick={() => setReportPeriod(p)}
+                style={{
+                  padding: '12px 32px', borderRadius: '18px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 900,
+                  background: reportPeriod === p ? '#0f172a' : '#f1f5f9',
+                  color: reportPeriod === p ? 'white' : '#64748b',
+                  transition: 'all 0.3s'
+                }}>
+                {p} View
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+            <div className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 950, margin: 0 }}>Revenue Dynamics</h3>
+                <div style={{ fontSize: '11px', fontWeight: 900, color: '#3b82f6', background: '#3b82f615', padding: '6px 14px', borderRadius: '10px' }}>{reportPeriod === 'Monthly' ? 'LAST 6 MONTHS' : 'LAST 5 YEARS'}</div>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={reportPeriod === 'Monthly' ? financialData : annualData}>
+                  <defs>
+                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey={reportPeriod === 'Monthly' ? "month" : "year"} axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} tickFormatter={v => `${v/1000}k`} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} />
+                  <Area type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorProfit)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 950, margin: 0 }}>Fiscal Comparison</h3>
+                <button className="btn btn-ghost btn-sm" style={{ borderRadius: '12px' }}>Full Report</button>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={reportPeriod === 'Monthly' ? financialData : annualData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey={reportPeriod === 'Monthly' ? "month" : "year"} axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} tickFormatter={v => `${v/1000}k`} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} />
+                  <Bar dataKey="revenue" fill="#10B981" radius={[8, 8, 0, 0]} barSize={reportPeriod === 'Monthly' ? 20 : 40} />
+                  <Bar dataKey="expenses" fill="#EF4444" radius={[8, 8, 0, 0]} barSize={reportPeriod === 'Monthly' ? 20 : 40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TECHNICIAN BALANCES TAB ── */}
+      {tab === 'balances' && (() => {
+        const allTechBalances = technicianCashBalances
+        const totalCashHeld = allTechBalances.reduce((s,b) => s + b.remainingBalance, 0)
+        const totalSubmitted = allTechBalances.reduce((s,b) => s + b.submittedToAccounting, 0)
+        const pendingSubs = cashSubmissions.filter(s => s.status === 'Pending')
+        return (
+        <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+          {/* Balance KPIs */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
+            {[
+              { label: 'Cash Held by Technicians', val: totalCashHeld, icon: Banknote, color: '#F59E0B' },
+              { label: 'Total Submitted to Company', val: totalSubmitted, icon: CheckCircle, color: '#10B981' },
+              { label: 'Pending Confirmations', val: pendingSubs.length, icon: Clock, color: '#3B82F6', isCnt: true },
+            ].map((s, idx) => (
+              <div key={s.label} className="glass-card" style={{ padding: '28px', borderRadius: '28px', borderLeft: `6px solid ${s.color}`, animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div style={{ background: `${s.color}15`, color: s.color, width: '44px', height: '44px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={22} /></div>
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: 950, color: '#0f172a' }}>{s.isCnt ? s.val : `SAR ${s.val.toLocaleString()}`}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginTop: '4px' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Technician Balance Table */}
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 950, marginBottom: '20px' }}>Technician Cash Balances</h3>
+            <div className="table-container" style={{ borderRadius: '28px', border: '1px solid #e2e8f0', background: 'white', overflow: 'hidden' }}>
+              <table className="table">
+                <thead><tr style={{ background: '#f8fafc' }}>
+                  <th style={{ padding: '20px 24px' }}>TECHNICIAN</th>
+                  <th>TOTAL COLLECTED</th>
+                  <th>SUBMITTED</th>
+                  <th>REMAINING BALANCE</th>
+                  <th>LAST SUBMISSION</th>
+                  <th>STATUS</th>
+                </tr></thead>
+                <tbody>
+                  {allTechBalances.map(b => (
+                    <tr key={b.techId}>
+                      <td style={{ padding: '18px 24px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '12px', color: '#3b82f6' }}>{b.techName.split(' ').map(n=>n[0]).join('')}</div>
+                          <div style={{ fontWeight: 800, fontSize: '14px' }}>{b.techName}</div>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 900, fontSize: '15px' }}>SAR {b.totalCashCollected.toLocaleString()}</td>
+                      <td style={{ fontWeight: 800, color: '#10b981' }}>SAR {b.submittedToAccounting.toLocaleString()}</td>
+                      <td><span style={{ fontWeight: 950, fontSize: '16px', color: b.remainingBalance > 0 ? '#f59e0b' : '#10b981' }}>SAR {b.remainingBalance.toLocaleString()}</span></td>
+                      <td style={{ fontWeight: 700, color: '#64748b', fontSize: '13px' }}>{b.lastSubmission || '—'}</td>
+                      <td>{b.remainingBalance === 0 ? <span style={{ fontSize: '11px', fontWeight: 900, color: '#10b981', background: '#10b98115', padding: '4px 12px', borderRadius: '10px' }}>CLEARED</span> : <span style={{ fontSize: '11px', fontWeight: 900, color: '#f59e0b', background: '#f59e0b15', padding: '4px 12px', borderRadius: '10px' }}>BALANCE DUE</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Cash Submissions Log */}
+          <h3 style={{ fontSize: '20px', fontWeight: 950, marginBottom: '20px' }}>Cash Submission History</h3>
+          <div className="table-container" style={{ borderRadius: '28px', border: '1px solid #e2e8f0', background: 'white', overflow: 'hidden' }}>
+            <table className="table">
+              <thead><tr style={{ background: '#f8fafc' }}>
+                <th style={{ padding: '20px 24px' }}>ID</th>
+                <th>TECHNICIAN</th>
+                <th>AMOUNT</th>
+                <th>DATE</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+              </tr></thead>
+              <tbody>
+                {cashSubmissions.map(sub => (
+                  <tr key={sub.id}>
+                    <td style={{ padding: '18px 24px', fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace' }}>{sub.id}</td>
+                    <td style={{ fontWeight: 800 }}>{sub.techName}</td>
+                    <td style={{ fontWeight: 950, fontSize: '15px' }}>SAR {sub.amount.toLocaleString()}</td>
+                    <td style={{ fontWeight: 700, color: '#64748b' }}>{sub.date}</td>
+                    <td>{sub.status === 'Confirmed' ? <span style={{ fontSize: '11px', fontWeight: 900, color: '#10b981', background: '#10b98115', padding: '4px 12px', borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{createElement(CheckCircle, {size:12})} CONFIRMED</span> : <span style={{ fontSize: '11px', fontWeight: 900, color: '#f59e0b', background: '#f59e0b15', padding: '4px 12px', borderRadius: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{createElement(Clock, {size:12})} PENDING</span>}</td>
+                    <td onClick={e => e.stopPropagation()}>
+                      {sub.status === 'Pending' ? (
+                        <button className="btn btn-success btn-sm" style={{ borderRadius: '12px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', fontWeight: 900, fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => toast(`Submission ${sub.id} confirmed — SAR ${sub.amount.toLocaleString()} collected`, 'success')}>{createElement(CheckCircle, {size:14})} Confirm</button>
+                      ) : (
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>By {sub.confirmedBy}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )})()}
 
       {/* ── MODALS ── */}
       {modal === 'view' && selected && (
@@ -704,6 +941,68 @@ export default function Accounting() {
                   </span>
                 </div>
               </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── INSTALLMENT DETAIL MODAL ── */}
+      {modal === 'view_installment' && selected && (
+        <Modal title={`Installment Schedule: ${selected.id}`} onClose={() => setModal(null)} size="lg"
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Dismiss</button>
+              {selected.status !== 'Completed' && (
+                <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a', gap: '8px' }} onClick={() => { toast('Payment Processed', 'success'); setModal(null) }}>
+                  <CreditCard size={18} /> Record SAR {selected.monthlyPayment.toLocaleString()} Payment
+                </button>
+              )}
+            </>
+          }
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', background: '#0f172a', padding: '32px', borderRadius: '32px', color: 'white' }}>
+            <div>
+              <div style={{ fontSize: '32px', fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace' }}>{selected.id}</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, opacity: 0.6, marginTop: '4px' }}>PROTOCOL STATUS: {selected.status.toUpperCase()}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, opacity: 0.6, letterSpacing: '2px', marginBottom: '8px' }}>CYCLE PROGRESS</div>
+              <div style={{ fontSize: '36px', fontWeight: 950, color: '#10b981' }}>{Math.round((selected.paid/selected.totalAmount)*100)}%</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '32px' }}>
+            {[
+              { label: 'GROSS CONTRACT', val: `SAR ${selected.totalAmount.toLocaleString()}`, color: '#3b82f6' },
+              { label: 'TOTAL RECOVERED', val: `SAR ${selected.paid.toLocaleString()}`, color: '#10b981' },
+              { label: 'REMAINING EXPOSURE', val: `SAR ${selected.remaining.toLocaleString()}`, color: selected.status === 'Overdue' ? '#ef4444' : '#f59e0b' }
+            ].map(i => (
+              <div key={i.label} style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '1px', marginBottom: '8px' }}>{i.label}</div>
+                <div style={{ fontSize: '20px', fontWeight: 950, color: i.color }}>{i.val}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+            <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Clock size={20} color="#3b82f6" /> RECENT TRANSACTION LEDGER
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Array.from({ length: Math.min(selected.paymentsCompleted, 5) }).map((_, i) => (
+                <div key={i} style={{ background: 'white', padding: '16px 24px', borderRadius: '16px', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#10b98115', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CheckCircle size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#334155' }}>Payment Cycle #{selected.paymentsCompleted - i}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>VERIFIED TRANSACTION</div>
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: 900, color: '#0f172a' }}>SAR {selected.monthlyPayment.toLocaleString()}</div>
+                </div>
+              ))}
             </div>
           </div>
         </Modal>

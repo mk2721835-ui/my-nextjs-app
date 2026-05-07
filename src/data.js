@@ -38,14 +38,20 @@ export const reviews = [
 ];
 
 export const maintenanceRequests = [
-  { id: 'MR-001', client: 'Ahmed Al-Rashidi', clientId: 1, type: 'Solar Panel Fault', priority: 'High', status: 'In Progress', technicianId: 6, technician: 'Mohammed Salim', date: '2026-04-26', scheduled: '2026-04-28', city: 'Riyadh', description: 'Solar panels not generating expected output. Possible inverter issue.', faultPhotos: 2 },
-  { id: 'MR-002', client: 'Sara Al-Ghamdi', clientId: 2, type: 'Water Filter Maintenance', priority: 'Medium', status: 'Scheduled', technicianId: 7, technician: 'Ali Al-Otaibi', date: '2026-04-25', scheduled: '2026-04-29', city: 'Jeddah', description: 'Annual maintenance for RO water filter system.', faultPhotos: 0 },
-  { id: 'MR-003', client: 'Khalid Bin Naif', clientId: 3, type: 'Inverter Replacement', priority: 'Critical', status: 'Awaiting Parts', technicianId: 8, technician: 'Yusuf Al-Shammari', date: '2026-04-24', scheduled: '2026-04-27', city: 'Dammam', description: 'Inverter completely failed. Needs replacement unit.', faultPhotos: 3 },
-  { id: 'MR-004', client: 'Omar Al-Zahrani', clientId: 5, type: 'Panel Cleaning', priority: 'Low', status: 'Completed', technicianId: 9, technician: 'Nasser Al-Dosari', date: '2026-04-22', scheduled: '2026-04-23', city: 'Medina', description: 'Full panel cleaning and efficiency check.', faultPhotos: 1 },
-  { id: 'MR-005', client: 'Ahmed Al-Rashidi', clientId: 1, type: 'Battery Check', priority: 'Medium', status: 'Under Review', technicianId: null, technician: 'Unassigned', date: '2026-04-28', scheduled: null, city: 'Riyadh', description: 'Battery backup not holding charge properly.', faultPhotos: 1 },
-  { id: 'MR-006', client: 'Sara Al-Ghamdi', clientId: 2, type: 'Filter Replacement', priority: 'High', status: 'Accepted', technicianId: 7, technician: 'Ali Al-Otaibi', date: '2026-04-27', scheduled: '2026-04-30', city: 'Jeddah', description: 'All filter membranes need replacement.', faultPhotos: 2 },
-  { id: 'MR-007', client: 'Fatima Hassan', clientId: 4, type: 'Solar Installation Check', priority: 'Low', status: 'Closed', technicianId: 6, technician: 'Mohammed Salim', date: '2026-04-20', scheduled: '2026-04-21', city: 'Mecca', description: 'Post-installation inspection completed.', faultPhotos: 0 },
-  { id: 'MR-008', client: 'Omar Al-Zahrani', clientId: 5, type: 'Smart Monitoring Setup', priority: 'Medium', status: 'In Progress', technicianId: 8, technician: 'Yusuf Al-Shammari', date: '2026-04-27', scheduled: '2026-04-28', city: 'Medina', description: 'Installing IoT monitoring for solar production tracking.', faultPhotos: 0 },
+  { id: 'MR-001', client: 'Ahmed Al-Rashidi', clientId: 1, type: 'Solar Panel Fault', priority: 'High', status: 'In Progress', technicianId: 6, technician: 'Mohammed Salim', assignedTechs: [6], teamId: null, date: '2026-04-26', scheduled: '2026-04-28', city: 'Riyadh', description: 'Solar panels not generating expected output. Possible inverter issue.', faultPhotos: 2, logs: [{ time: '2026-04-28 09:00', event: 'Technician Arrived', tech: 'Mohammed Salim' }] },
+  { id: 'MR-002', client: 'Sara Al-Ghamdi', clientId: 2, type: 'Water Filter Maintenance', priority: 'Medium', status: 'Scheduled', technicianId: 7, technician: 'Ali Al-Otaibi', assignedTechs: [7], teamId: null, date: '2026-04-25', scheduled: '2026-04-29', city: 'Jeddah', description: 'Annual maintenance for RO water filter system.', faultPhotos: 0, logs: [] },
+  { id: 'MR-003', client: 'Khalid Bin Naif', clientId: 3, type: 'Inverter Replacement', priority: 'Critical', status: 'Awaiting Parts', technicianId: 8, technician: 'Yusuf Al-Shammari', assignedTechs: [8, 9], teamId: 'TEAM-01', date: '2026-04-24', scheduled: '2026-04-27', city: 'Dammam', description: 'Inverter completely failed. Needs replacement unit.', faultPhotos: 3, logs: [] },
+  { id: 'MR-004', client: 'Omar Al-Zahrani', clientId: 5, type: 'Panel Cleaning', priority: 'Low', status: 'Completed', technicianId: 9, technician: 'Nasser Al-Dosari', assignedTechs: [9], teamId: null, date: '2026-04-22', scheduled: '2026-04-23', city: 'Medina', description: 'Full panel cleaning and efficiency check.', faultPhotos: 1, logs: [{ time: '2026-04-23 08:30', event: 'Technician Arrived', tech: 'Nasser Al-Dosari' }, { time: '2026-04-23 11:45', event: 'Work Completed', tech: 'Nasser Al-Dosari' }] },
+  { id: 'MR-005', client: 'Ahmed Al-Rashidi', clientId: 1, type: 'Battery Check', priority: 'Medium', status: 'Under Review', technicianId: null, technician: 'Unassigned', assignedTechs: [], teamId: null, date: '2026-04-28', scheduled: null, city: 'Riyadh', description: 'Battery backup not holding charge properly.', faultPhotos: 1, logs: [] },
+  { id: 'MR-006', client: 'Sara Al-Ghamdi', clientId: 2, type: 'Filter Replacement', priority: 'High', status: 'Accepted', technicianId: 7, technician: 'Ali Al-Otaibi', assignedTechs: [7], teamId: null, date: '2026-04-27', scheduled: '2026-04-30', city: 'Jeddah', description: 'All filter membranes need replacement.', faultPhotos: 2, logs: [] },
+  { id: 'MR-007', client: 'Fatima Hassan', clientId: 4, type: 'Solar Installation Check', priority: 'Low', status: 'Closed', technicianId: 6, technician: 'Mohammed Salim', assignedTechs: [6], teamId: null, date: '2026-04-20', scheduled: '2026-04-21', city: 'Mecca', description: 'Post-installation inspection completed.', faultPhotos: 0, logs: [] },
+  { id: 'MR-008', client: 'Omar Al-Zahrani', clientId: 5, type: 'Smart Monitoring Setup', priority: 'Medium', status: 'In Progress', technicianId: 8, technician: 'Yusuf Al-Shammari', assignedTechs: [8], teamId: null, date: '2026-04-27', scheduled: '2026-04-28', city: 'Medina', description: 'Installing IoT monitoring for solar production tracking.', faultPhotos: 0, logs: [] },
+];
+
+export const teams = [
+  { id: 'TEAM-01', name: 'Rapid Response Alpha', leadId: 6, leadName: 'Mohammed Salim', members: [6, 9], area: 'Riyadh Central', activeJobs: 1, color: '#3B82F6' },
+  { id: 'TEAM-02', name: 'West Coast Maintenance', leadId: 7, leadName: 'Ali Al-Otaibi', members: [7], area: 'Jeddah / Mecca', activeJobs: 2, color: '#10B981' },
+  { id: 'TEAM-03', name: 'East Grid Engineers', leadId: 11, leadName: 'Tariq Al-Anazi', members: [11, 8], area: 'Dammam / Khobar', activeJobs: 1, color: '#F59E0B' },
 ];
 
 export const invoices = [
@@ -57,6 +63,21 @@ export const invoices = [
   { id: 'INV-0040', clientId: 1, client: 'Ahmed Al-Rashidi', techId: 6, tech: 'Mohammed Salim', requestId: 'MR-001', type: 'Sales', items: [{name:'Solar System 10kW',qty:1,unit:18000},{name:'Battery Storage 5kWh',qty:1,unit:6500},{name:'Installation',qty:1,unit:2000}], total: 26500, paid: 26500, status: 'Paid', method: 'Cash', date: '2026-01-15', isNew: false },
   { id: 'INV-0039', clientId: 3, client: 'Khalid Bin Naif', techId: 6, tech: 'Mohammed Salim', requestId: null, type: 'Installment', items: [{name:'Installment Plan Payment #3',qty:1,unit:1500}], total: 1500, paid: 1500, status: 'Paid', method: 'Bank Transfer', date: '2026-04-01', isNew: false },
   { id: 'INV-0038', clientId: 4, client: 'Fatima Hassan', techId: null, tech: null, requestId: null, type: 'Overdue', items: [{name:'Water Filter System 6-Stage',qty:1,unit:3200}], total: 3200, paid: 800, status: 'Overdue', method: 'Installment', date: '2026-02-15', isNew: false },
+];
+
+// ── Technician Cash Balances & Submissions ──
+
+export const technicianCashBalances = [
+  { techId: 6, techName: 'Mohammed Salim', totalCashCollected: 27280, submittedToAccounting: 26500, remainingBalance: 780, lastSubmission: '2026-04-30' },
+  { techId: 7, techName: 'Ali Al-Otaibi', totalCashCollected: 250, submittedToAccounting: 0, remainingBalance: 250, lastSubmission: null },
+  { techId: 8, techName: 'Yusuf Al-Shammari', totalCashCollected: 0, submittedToAccounting: 0, remainingBalance: 0, lastSubmission: null },
+  { techId: 9, techName: 'Nasser Al-Dosari', totalCashCollected: 400, submittedToAccounting: 400, remainingBalance: 0, lastSubmission: '2026-04-24' },
+];
+
+export const cashSubmissions = [
+  { id: 'CS-001', techId: 6, techName: 'Mohammed Salim', amount: 26500, date: '2026-04-30', method: 'Hand Delivery', status: 'Confirmed', confirmedBy: 'Hana Al-Mutairi', confirmedAt: '2026-04-30', notes: 'Full cash collection for INV-0040', invoiceIds: ['INV-0040'] },
+  { id: 'CS-002', techId: 9, techName: 'Nasser Al-Dosari', amount: 400, date: '2026-04-24', method: 'Hand Delivery', status: 'Confirmed', confirmedBy: 'Hana Al-Mutairi', confirmedAt: '2026-04-24', notes: 'Cash for panel cleaning job', invoiceIds: ['INV-0043'] },
+  { id: 'CS-003', techId: 6, techName: 'Mohammed Salim', amount: 380, date: '2026-05-01', method: 'Hand Delivery', status: 'Pending', confirmedBy: null, confirmedAt: null, notes: 'Cash for maintenance job MR-001', invoiceIds: ['INV-0041'] },
 ];
 
 export const products = [
@@ -98,10 +119,10 @@ export const spareParts = [
 ];
 
 export const partsRequests = [
-  { id: 'PR-001', techId: 8, tech: 'Yusuf Al-Shammari', requestId: 'MR-003', part: 'Inverter 5kW Hybrid', partCode: 'INV-5KW-H', qty: 1, status: 'Pending', date: '2026-04-27', reason: 'Client inverter completely failed, needs replacement.' },
-  { id: 'PR-002', techId: 6, tech: 'Mohammed Salim', requestId: 'MR-001', part: 'DC Cable 6mm² (per meter)', partCode: 'CBL-DC-6M', qty: 5, status: 'Approved', date: '2026-04-26', reason: 'Damaged cable causing power loss.' },
-  { id: 'PR-003', techId: 9, tech: 'Nasser Al-Dosari', requestId: 'MR-008', part: 'WiFi Logger Module', partCode: 'MOD-WIFI-L', qty: 1, status: 'Pending', date: '2026-04-28', reason: 'Required for IoT monitoring installation.' },
-  { id: 'PR-004', techId: 7, tech: 'Ali Al-Otaibi', requestId: 'MR-006', part: 'RO Membrane 75GPD', partCode: 'MEM-75G-RO', qty: 3, status: 'Rejected', date: '2026-04-25', reason: 'Filter replacement for Sara Al-Ghamdi.' },
+  { id: 'PR-001', techId: 8, tech: 'Yusuf Al-Shammari', requestId: 'MR-003', items: [{ part: 'Inverter 5kW Hybrid', partCode: 'INV-5KW-H', qty: 1 }], status: 'Pending', date: '2026-04-27', reason: 'Client inverter completely failed, needs replacement.' },
+  { id: 'PR-002', techId: 6, tech: 'Mohammed Salim', requestId: 'MR-001', items: [{ part: 'DC Cable 6mm² (per meter)', partCode: 'CBL-DC-6M', qty: 5 }, { part: 'MC4 Connector Pair', partCode: 'CON-MC4-P', qty: 4 }], status: 'Approved', date: '2026-04-26', reason: 'Damaged cable causing power loss.' },
+  { id: 'PR-003', techId: 9, tech: 'Nasser Al-Dosari', requestId: 'MR-008', items: [{ part: 'WiFi Logger Module', partCode: 'MOD-WIFI-L', qty: 1 }], status: 'Pending', date: '2026-04-28', reason: 'Required for IoT monitoring installation.' },
+  { id: 'PR-004', techId: 7, tech: 'Ali Al-Otaibi', requestId: 'MR-006', items: [{ part: 'RO Membrane 75GPD', partCode: 'MEM-75G-RO', qty: 3 }, { part: 'Carbon Block Filter', partCode: 'FLT-CB-10', qty: 2 }], status: 'Rejected', date: '2026-04-25', reason: 'Filter replacement for Sara Al-Ghamdi.' },
 ];
 
 export const monthlyRevenue = [

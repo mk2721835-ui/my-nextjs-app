@@ -6,7 +6,6 @@ import UserManagement from './pages/UserManagement'
 import Sales from './pages/Sales'
 import Maintenance from './pages/Maintenance'
 import Accounting from './pages/Accounting'
-import Installments from './pages/Installments'
 import Inventory from './pages/Inventory'
 import Reports from './pages/Reports'
 import Fleet from './pages/Fleet'
@@ -55,8 +54,7 @@ const PAGE_LABELS = {
   users:        'User Management',
   sales:        'Sales',
   maintenance:  'Maintenance',
-  accounting:   'Accounting',
-  installments: 'Installments',
+  accounting:   'Accounting System',
   inventory:    'Inventory',
   reports:      'Reports',
   fleet:        'Fleet / Vehicles',
@@ -76,7 +74,6 @@ function AdminApp({ onLogout }) {
       case 'sales':        return <Sales />
       case 'maintenance':  return <Maintenance />
       case 'accounting':   return <Accounting />
-      case 'installments': return <Installments />
       case 'inventory':    return <Inventory />
       case 'reports':      return <Reports />
       case 'fleet':        return <Fleet />

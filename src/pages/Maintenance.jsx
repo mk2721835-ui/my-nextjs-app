@@ -1,6 +1,6 @@
 import { useState, useEffect, createElement } from 'react'
 import Modal from '../components/Modal'
-import { maintenanceRequests, users, monthlyRevenue, techPerformance, statusDistribution, partsRequests, invoices } from '../data'
+import { maintenanceRequests, users, monthlyRevenue, techPerformance, statusDistribution, partsRequests, invoices, teams } from '../data'
 import { useToast } from '../App'
 import { 
   Wrench, 
@@ -48,6 +48,7 @@ const PRIORITY_META = {
 }
 
 const technicians = users.filter(u => u.role === 'Technician')
+
 
 // ── Creative Maintenance Card ─────────────────────────────────────────────
 function MaintenanceCard({ request, onView, onAssign, onStatus }) {
@@ -165,13 +166,39 @@ function MaintenanceCard({ request, onView, onAssign, onStatus }) {
             <AlertTriangle size={14} /> ASSIGN TECH
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#3b82f6', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>
-              {request.technician.split(' ').map(n=>n[0]).join('').slice(0,2)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ display: 'flex', marginRight: '8px' }}>
+              {(request.assignedTechs || [request.technicianId]).slice(0, 3).map((tid, i) => {
+                const u = users.find(usr => usr.id === tid)
+                return (
+                  <div key={tid} style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    borderRadius: '10px', 
+                    background: u?.color || '#3b82f6', 
+                    color: 'white', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    fontSize: '10px', 
+                    fontWeight: 900,
+                    border: '2px solid white',
+                    marginLeft: i > 0 ? '-12px' : 0,
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                  }}>
+                    {u?.initials || '??'}
+                  </div>
+                )
+              })}
+              {(request.assignedTechs?.length > 3) && (
+                <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#cbd5e1', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 900, border: '2px solid white', marginLeft: '-12px' }}>
+                  +{request.assignedTechs.length - 3}
+                </div>
+              )}
             </div>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>{request.technician}</div>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8' }}>Technician</div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>{request.teamId ? (teams.find(t => t.id === request.teamId)?.name || 'Team Assigned') : request.technician}</div>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8' }}>{request.teamId ? 'Field Team' : 'Technician'}</div>
             </div>
           </div>
         )}
@@ -213,21 +240,21 @@ function MaintenanceCard({ request, onView, onAssign, onStatus }) {
 
 function VTog({ mode, setMode }) {
   return (
-    <div style={{ display: 'flex', gap: 4, background: '#e2e8f0', borderRadius: '16px', padding: '4px' }}>
+    <div style={{ display: 'flex', gap: '6px', background: '#f1f5f9', borderRadius: '14px', padding: '5px', border: '1px solid #e2e8f0' }}>
       {[
         { id: 'grid', icon: LayoutGrid, label: 'Cards' },
         { id: 'table', icon: List, label: 'List' }
       ].map(({ id, icon: Icon, label }) => (
         <button key={id} onClick={() => setMode(id)}
           style={{ 
-            padding: '8px 18px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 800,
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: mode === id ? 'white' : 'transparent',
-            boxShadow: mode === id ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
-            color: mode === id ? '#0f172a' : '#64748b',
-            transition: 'all 0.3s',
+            padding: '8px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 900,
+            display: 'flex', alignItems: 'center', gap: '8px', letterSpacing: '0.5px',
+            background: mode === id ? '#b91c1c' : 'transparent',
+            boxShadow: mode === id ? '0 8px 16px -4px rgba(185, 28, 28, 0.25)' : 'none',
+            color: mode === id ? 'white' : '#64748b',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           }}>
-          <Icon size={14} /> {label}
+          <Icon size={14} strokeWidth={2.5} /> {label.toUpperCase()}
         </button>
       ))}
     </div>
@@ -249,7 +276,7 @@ function AnalyticsView() {
         {kpis.map((kpi, i) => (
           <div key={i} className="glass-card" style={{ padding: '24px', borderRadius: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${kpi.color}15`, color: kpi.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <kpi.icon size={28} />
+              {createElement(kpi.icon, { size: 28 })}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>{kpi.label}</div>
@@ -364,6 +391,9 @@ export default function Maintenance() {
   const [viewTab, setViewTab]             = useState('client')
   const [selected, setSelected]           = useState(null)
   const [assignTech, setAssignTech]       = useState('')
+  const [assignMode, setAssignMode]       = useState('single')
+  const [selectedTeam, setSelectedTeam]   = useState(null)
+  const [multiTechs, setMultiTechs]       = useState([])
   const [newStatus, setNewStatus]         = useState('')
   const [mounted, setMounted] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
@@ -532,117 +562,75 @@ export default function Maintenance() {
                 </button>
               ))}
             </div>
-            
             <VTog mode={viewMode} setMode={setViewMode} />
           </div>
+
+          {viewMode === 'grid' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '32px' }}>
+              {filtered.map(req => (
+                <MaintenanceCard 
+                  key={req.id} 
+                  request={req} 
+                  onView={openView} 
+                  onAssign={openAssign} 
+                  onStatus={openStatus} 
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="table-container" style={{ borderRadius: '32px', border: '1px solid #e2e8f0', background: 'white', overflow: 'hidden' }}>
+              <table className="table">
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: '24px' }}>TICKET ID</th>
+                    <th>CLIENT & LOCATION</th>
+                    <th>SERVICE TYPE</th>
+                    <th>PRIORITY</th>
+                    <th>STATUS</th>
+                    <th>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(req => {
+                    const statusInfo = STATUS_META[req.status] || STATUS_META.Closed
+                    const prioInfo = PRIORITY_META[req.priority] || PRIORITY_META.Low
+                    return (
+                      <tr key={req.id} style={{ cursor: 'pointer' }} onClick={() => openView(req)}>
+                        <td style={{ padding: '20px 24px' }}>
+                          <div style={{ fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace' }}>{req.id}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{req.date}</div>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{req.client}</div>
+                          <div style={{ fontSize: '11px', color: '#64748b' }}>{req.city.toUpperCase()} AREA</div>
+                        </td>
+                        <td style={{ fontWeight: 700, color: '#475569', fontSize: '13px' }}>{req.type}</td>
+                        <td>
+                          <div style={{ color: prioInfo.color, fontWeight: 900, fontSize: '11px', letterSpacing: '0.5px' }}>{prioInfo.label.toUpperCase()}</div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${statusInfo.color}15`, color: statusInfo.color, padding: '6px 12px', borderRadius: '10px', width: 'fit-content', fontSize: '11px', fontWeight: 900 }}>
+                            {createElement(statusInfo.icon, { size: 12 })} {req.status.toUpperCase()}
+                          </div>
+                        </td>
+                        <td style={{ padding: '0 24px' }}>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={(e) => { e.stopPropagation(); openAssign(req) }} className="btn-icon" title="Assign"><User size={14} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); openStatus(req) }} className="btn-icon" title="Status"><Settings size={14} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); openView(req) }} className="btn-icon" title="View"><ArrowRight size={14} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
-      {/* Main Grid */}
-      {showAnalytics ? (
-        <AnalyticsView />
-      ) : viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '32px' }}>
-          {filtered.map((r, idx) => (
-            <div key={r.id} style={{ animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
-              <MaintenanceCard 
-                request={r} 
-                onView={openView} 
-                onAssign={openAssign} 
-                onStatus={openStatus} 
-              />
-            </div>
-          ))}
-          <div 
-            className="glass-card" 
-            style={{ 
-              border: '2px dashed #e2e8f0', 
-              background: 'transparent', 
-              borderRadius: '32px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '340px',
-              cursor: 'pointer',
-              transition: 'all 0.3s'
-            }}
-            onClick={() => setModal('create')}
-          >
-            <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                <Plus size={40} />
-              </div>
-              <div style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a' }}>Issue New Ticket</div>
-              <div style={{ fontSize: '13px', marginTop: '8px', fontWeight: 600 }}>Deploy a technician for a client issue</div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="table-container" style={{ borderRadius: '32px', border: '1px solid #e2e8f0', background: 'white', overflow: 'hidden' }}>
-          <table className="table">
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                <th style={{ padding: '24px' }}>IDENTIFIER</th>
-                <th>CLIENT IDENTITY</th>
-                <th>SERVICE TYPE</th>
-                <th>STATUS</th>
-                <th>PRIORITY</th>
-                <th>ASSIGNED TECH</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(r => {
-                const info = STATUS_META[r.status] || STATUS_META.Closed
-                return (
-                  <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => openView(r)}>
-                    <td style={{ padding: '20px 24px' }}>
-                      <div style={{ fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace', fontSize: '15px' }}>{r.id}</div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{r.date}</div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{r.client}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <MapPin size={10} /> {r.city}
-                      </div>
-                    </td>
-                    <td style={{ fontWeight: 700, color: '#475569', fontSize: '13px' }}>{r.type}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${info.color}15`, color: info.color, padding: '6px 12px', borderRadius: '10px', width: 'fit-content', fontSize: '11px', fontWeight: 900 }}>
-                        {createElement(info.icon, { size: 14 })} {r.status.toUpperCase()}
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ color: PRIORITY_META[r.priority]?.color, fontSize: '11px', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
-                        {r.priority.toUpperCase()}
-                      </div>
-                    </td>
-                    <td>
-                      {r.technician === 'Unassigned' ? (
-                        <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 900 }}>UNASSIGNED</span>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#3b82f6', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 900 }}>{r.technician.charAt(0)}</div>
-                          <span style={{ fontSize: '12px', fontWeight: 700 }}>{r.technician}</span>
-                        </div>
-                      )}
-                    </td>
-                    <td onClick={e => e.stopPropagation()}>
-                      <div className="table-actions">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openView(r)}><Eye size={16} /></button>
-                        <button className="btn btn-ghost btn-sm" onClick={(e) => openAssign(r, e)}><User size={16} /></button>
-                        <button className="btn btn-ghost btn-sm" onClick={(e) => openStatus(r, e)}><Settings size={16} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {showAnalytics && <AnalyticsView />}
 
       {/* Detail Modal */}
       {modal === 'view' && selected && (
@@ -658,27 +646,30 @@ export default function Maintenance() {
         >
           <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', overflowX: 'auto' }}>
             {[
-              { id: 'client', label: 'Client Issue Details' },
-              { id: 'admin', label: 'Admin Lifecycle & Status' },
-              { id: 'technician', label: 'Technician Field Report' }
+              { id: 'client', label: 'Issue Details' },
+              { id: 'admin', label: 'Admin Controls' },
+              { id: 'ops', label: 'Field Operations' },
+              { id: 'technician', label: 'Field Report' }
             ].map(t => (
               <button 
                 key={t.id} 
                 onClick={() => setViewTab(t.id)}
                 style={{
-                  background: viewTab === t.id ? '#0f172a' : 'transparent',
+                  background: viewTab === t.id ? '#b91c1c' : 'transparent',
                   color: viewTab === t.id ? 'white' : '#64748b',
                   padding: '10px 18px',
                   borderRadius: '12px',
-                  fontWeight: 800,
-                  fontSize: '12px',
+                  fontWeight: 900,
+                  fontSize: '11px',
+                  letterSpacing: '0.5px',
                   border: 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap'
+                  transition: 'all 0.3s',
+                  whiteSpace: 'nowrap',
+                  boxShadow: viewTab === t.id ? '0 8px 16px -4px rgba(185, 28, 28, 0.2)' : 'none'
                 }}
               >
-                {t.label}
+                {t.label.toUpperCase()}
               </button>
             ))}
           </div>
@@ -751,8 +742,7 @@ export default function Maintenance() {
                   </div>
                 )}
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
                 <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
                   <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', marginBottom: '16px' }}>LOGISTICS SCHEDULE</div>
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#334155' }}>
@@ -773,6 +763,70 @@ export default function Maintenance() {
                       <div style={{ fontWeight: 800 }}>{selected.technician}</div>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {viewTab === 'ops' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ background: '#0f172a', padding: '24px', borderRadius: '24px', color: 'white' }}>
+                <div style={{ fontSize: '11px', fontWeight: 900, color: '#94a3b8', marginBottom: '16px', letterSpacing: '1px' }}>DISPATCHED PERSONNEL</div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {(selected.assignedTechs || [selected.technicianId]).map(tid => {
+                    const u = users.find(usr => usr.id === tid)
+                    return (
+                      <div key={tid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.1)', padding: '8px 16px', borderRadius: '14px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: u?.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 950 }}>{u?.initials}</div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800 }}>{u?.name}</div>
+                          <div style={{ fontSize: '10px', opacity: 0.6 }}>{u?.specialty}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  <button className="btn btn-ghost btn-sm" style={{ border: '1px dashed rgba(255,255,255,0.3)', color: 'white', borderRadius: '12px', padding: '8px 16px' }} onClick={() => setModal('assign')}>
+                    <Plus size={14} /> Dispatch More
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f172a', letterSpacing: '1px' }}>OPERATIONAL TIMELINE & LOGS</div>
+                  <button className="btn btn-primary btn-sm" style={{ borderRadius: '10px', fontSize: '11px', background: '#0f172a' }} onClick={() => toast('Manual log entry initiated', 'info')}>+ Add Log</button>
+                </div>
+                
+                <div style={{ position: 'relative', paddingLeft: '32px' }}>
+                  <div style={{ position: 'absolute', left: '15px', top: '10px', bottom: '10px', width: '2px', background: '#e2e8f0' }} />
+                  
+                  {/* Arrival Log */}
+                  <div style={{ position: 'relative', marginBottom: '24px' }}>
+                    <div style={{ position: 'absolute', left: '-25px', top: '0', width: '18px', height: '18px', borderRadius: '50%', background: selected.logs?.some(l => l.event === 'Technician Arrived') ? '#10b981' : '#cbd5e1', border: '4px solid white', zIndex: 1 }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>Technician Arrival</div>
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>{selected.logs?.find(l => l.event === 'Technician Arrived')?.time || 'Awaiting Arrival...'}</div>
+                      </div>
+                      {!selected.logs?.some(l => l.event === 'Technician Arrived') && (
+                        <button className="btn btn-ghost btn-sm" style={{ fontSize: '10px', fontWeight: 900, color: '#3b82f6' }} onClick={() => toast('Arrival logged manually', 'success')}>LOG NOW</button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Completion Log */}
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '-25px', top: '0', width: '18px', height: '18px', borderRadius: '50%', background: selected.logs?.some(l => l.event === 'Work Completed') ? '#10b981' : '#cbd5e1', border: '4px solid white', zIndex: 1 }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>Work Completion</div>
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>{selected.logs?.find(l => l.event === 'Work Completed')?.time || 'In Progress...'}</div>
+                      </div>
+                      {selected.logs?.some(l => l.event === 'Technician Arrived') && !selected.logs?.some(l => l.event === 'Work Completed') && (
+                        <button className="btn btn-ghost btn-sm" style={{ fontSize: '10px', fontWeight: 900, color: '#3b82f6' }} onClick={() => toast('Completion logged manually', 'success')}>LOG NOW</button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -878,43 +932,76 @@ export default function Maintenance() {
 
       {/* Assign Modal */}
       {modal === 'assign' && selected && (
-        <Modal title="Deploy Technician Protocol" onClose={() => setModal(null)}
+        <Modal title="Workforce Deployment Center" onClose={() => setModal(null)} size="md"
           footer={
             <>
-              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Abort</button>
-              <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a' }} onClick={() => { toast(`Technician deployed`, 'success'); setModal(null) }} disabled={!assignTech}>Confirm Deployment</button>
+              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Cancel</button>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a' }} onClick={() => { toast(`Mission personnel deployed`, 'success'); setModal(null) }}>Confirm Dispatch</button>
             </>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {technicians.map(t => (
-              <div 
-                key={t.id} 
-                onClick={() => setAssignTech(t.name)}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '16px', 
-                  padding: '16px', 
-                  borderRadius: '20px', 
-                  border: `2px solid ${assignTech === t.name ? '#3b82f6' : '#f1f5f9'}`, 
-                  background: assignTech === t.name ? '#3b82f608' : 'white', 
-                  cursor: 'pointer', 
-                  transition: 'all 0.2s' 
-                }}
-              >
-                <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: t.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{t.initials}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 800, color: '#0f172a' }}>{t.name}</div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>{t.specialty} · {t.jobsDone} jobs</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: t.status === 'Online' ? '#10b981' : '#f59e0b' }} />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b' }}>{t.status.toUpperCase()}</span>
-                </div>
-              </div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: '#f1f5f9', padding: '4px', borderRadius: '14px' }}>
+            {[
+              { id: 'single', label: 'Individual Tech' },
+              { id: 'team', label: 'Field Team' },
+              { id: 'multi', label: 'Custom Group' }
+            ].map(m => (
+              <button key={m.id} onClick={() => setAssignMode(m.id)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 800, background: assignMode === m.id ? 'white' : 'transparent', color: assignMode === m.id ? '#0f172a' : '#64748b', boxShadow: assignMode === m.id ? '0 4px 10px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}>
+                {m.label}
+              </button>
             ))}
           </div>
+
+          {assignMode === 'single' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto' }}>
+              {technicians.map(t => (
+                <div key={t.id} onClick={() => setAssignTech(t.name)} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px', borderRadius: '18px', border: `2px solid ${assignTech === t.name ? '#3b82f6' : '#f1f5f9'}`, background: assignTech === t.name ? '#3b82f608' : 'white', cursor: 'pointer' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: t.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{t.initials}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{t.name}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>{t.specialty}</div>
+                  </div>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {assignTech === t.name && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3b82f6' }} />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {assignMode === 'team' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {teams.map(t => (
+                <div key={t.id} onClick={() => setSelectedTeam(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px', borderRadius: '18px', border: `2px solid ${selectedTeam === t.id ? '#10b981' : '#f1f5f9'}`, background: selectedTeam === t.id ? '#10b98108' : 'white', cursor: 'pointer' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: t.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={20} /></div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{t.name}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>{t.members.length} Members · {t.area}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {assignMode === 'multi' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', marginBottom: '8px', fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                Selected: {multiTechs.length} Technicians
+              </div>
+              <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {technicians.map(t => (
+                  <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '14px', border: '1px solid #e2e8f0', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={multiTechs.includes(t.id)} onChange={e => {
+                      if(e.target.checked) setMultiTechs([...multiTechs, t.id])
+                      else setMultiTechs(multiTechs.filter(id => id !== t.id))
+                    }} style={{ width: '18px', height: '18px' }} />
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: t.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 900 }}>{t.initials}</div>
+                    <span style={{ fontSize: '13px', fontWeight: 700 }}>{t.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </Modal>
       )}
 
