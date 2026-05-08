@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
-import { users, permissions, invoices, maintenanceRequests, installmentPlans, partsRequests, orders, vehicles, vehicleAssignments, products, devices, technicalReports, reviews, vehicleActivityLogs, recentActivity, teams } from '../data'
+import { users, permissions, invoices, maintenanceRequests, installmentPlans, partsRequests, orders, vehicles, vehicleAssignments, products, devices, technicalReports, reviews, vehicleActivityLogs, recentActivity, teams, technicianCashBalances } from '../data'
 import { useToast } from '../App'
 import { 
   Users, 
@@ -50,7 +50,10 @@ import {
   Filter,
   Layers,
   Box,
-  Wrench
+  Wrench,
+  Banknote,
+  Wallet,
+  Coins
 } from 'lucide-react'
 
 const ROLES = ['Client', 'Technician', 'Engineer', 'Accountant', 'Management']
@@ -808,6 +811,7 @@ export default function UserManagement() {
           { id: 'team', icon: Users, label: 'Team' },
           { id: 'spare-parts', icon: Package, label: 'Spare Parts' },
           { id: 'salary', icon: DollarSign, label: 'Salary' },
+          { id: 'collected', icon: Banknote, label: 'Collected', count: invoices.filter(i => i.techId === selected.id && i.method === 'Cash').length },
           { id: 'invoices', icon: FileText, label: 'Invoice', count: invoices.filter(i => i.techId === selected.id).length },
           { id: 'reports', icon: Clipboard, label: 'Report' },
           { id: 'activity', icon: Activity, label: 'Activity' },
@@ -1187,6 +1191,60 @@ export default function UserManagement() {
                   )}
                 </div>
               )}
+
+              {selected.role === 'Technician' && profileTab === 'collected' && (() => {
+                const balance = technicianCashBalances.find(b => b.techId === selected.id) || { totalCashCollected: 0, submittedToAccounting: 0, remainingBalance: 0 }
+                const techInvoices = invoices.filter(i => i.techId === selected.id)
+                
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                      {[
+                        { label: 'Total Collected', val: balance.totalCashCollected, color: '#10b981', icon: Coins },
+                        { label: 'Submitted', val: balance.submittedToAccounting, color: '#3b82f6', icon: Wallet },
+                        { label: 'Pending Balance', val: balance.remainingBalance, color: '#f59e0b', icon: Banknote },
+                      ].map(s => (
+                        <div key={s.label} style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                           <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.05, color: s.color }}>
+                            <s.icon size={64} />
+                          </div>
+                          <div style={{ fontSize: '24px', fontWeight: 950, color: s.color }}>SAR {s.val.toLocaleString()}</div>
+                          <div style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', letterSpacing: '1px', marginTop: '4px' }}>{s.label.toUpperCase()}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', letterSpacing: '1px' }}>INVOICE & COLLECTION LEDGER</div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {techInvoices.map(inv => (
+                        <div key={inv.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: 'white', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: inv.method === 'Cash' ? '#f59e0b10' : '#3b82f610', color: inv.method === 'Cash' ? '#f59e0b' : '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {inv.method === 'Cash' ? <Banknote size={24} /> : <CreditCard size={24} />}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 900, fontSize: '15px', color: '#0f172a' }}>{inv.client}</div>
+                              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>{inv.id} · {inv.date}</div>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 950, color: '#0f172a', fontSize: '16px' }}>SAR {inv.total.toLocaleString()}</div>
+                              <div style={{ fontSize: '10px', fontWeight: 900, color: inv.method === 'Cash' ? '#f59e0b' : '#3b82f6', background: inv.method === 'Cash' ? '#f59e0b10' : '#3b82f610', padding: '2px 8px', borderRadius: '6px' }}>
+                                {inv.method ? inv.method.toUpperCase() : 'ONLINE'}
+                              </div>
+                            </div>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: inv.status === 'Paid' ? '#ecfdf5' : '#fffbeb', color: inv.status === 'Paid' ? '#10b981' : '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {inv.status === 'Paid' ? <CheckCircle size={18} /> : <Clock size={18} />}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {selected.role === 'Technician' && profileTab === 'salary' && (
                 <div style={{ background: '#0f172a', padding: '40px', borderRadius: '32px', color: 'white', textAlign: 'center' }}>

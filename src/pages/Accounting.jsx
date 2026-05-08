@@ -308,7 +308,12 @@ export default function Accounting() {
   const totalOverdue = invoices.filter(i => i.status === 'Overdue').reduce((s, i) => s + (i.total - i.paid), 0)
 
   const filtered = invoices.filter(inv => {
-    const matchStatus = statusFilter === 'All' || inv.status === statusFilter
+    let matchStatus = false
+    if (statusFilter === 'All') matchStatus = true
+    else if (statusFilter === 'Paid (Cash)') matchStatus = inv.status === 'Paid' && inv.method === 'Cash'
+    else if (statusFilter === 'Paid (Online)') matchStatus = inv.status === 'Paid' && inv.method !== 'Cash'
+    else matchStatus = inv.status === statusFilter
+
     const matchSearch = inv.id.toLowerCase().includes(search.toLowerCase()) ||
       inv.client.toLowerCase().includes(search.toLowerCase())
     return matchStatus && matchSearch
@@ -396,7 +401,7 @@ export default function Accounting() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
         {[
           { label:'Capital Collected', val:totalRevenue + totalInstallmentRevenue, icon:CheckCircle, color:'#10B981', filter:'Paid' },
-          { label:'Pending Revenue',  val:totalPending, icon:Clock, color:'#F59E0B', filter:'Pending' },
+          { label:'Cash on Field', val:technicianCashBalances.reduce((s,b) => s + b.remainingBalance, 0), icon:Banknote, color:'#F59E0B', filter:'Paid' },
           { label:'Critical Overdue',  val:totalOverdue + totalOverdueInstallments, icon:AlertCircle, color:'#EF4444', filter:'Overdue' },
         ].map((s, idx) => (
           <div key={s.label} 
@@ -445,6 +450,7 @@ export default function Accounting() {
             { id:'payments', label:'Payment Log',    icon: Receipt },
             { id:'installments', label:'Installments', icon: CreditCard },
             { id:'balances', label:'Tech Balances',  icon: Banknote },
+            { id:'daily', label:'Daily Reports', icon: Zap },
             { id:'reports',  label:'Fiscal Reports', icon: TrendingUp },
           ].map(t => (
             <button key={t.id} 
@@ -489,7 +495,7 @@ export default function Accounting() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f1f5f9', padding: '6px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: 800, color: '#64748b', marginRight: '12px' }}>
               <Filter size={14} /> STATUS
             </div>
-            {['All', 'Paid', 'Pending', 'Overdue'].map(s => (
+            {['All', 'Paid (Cash)', 'Paid (Online)', 'Pending', 'Overdue'].map(s => (
               <button key={s} 
                 onClick={() => setStatusFilter(s)}
                 style={{
@@ -763,6 +769,80 @@ export default function Accounting() {
           </div>
         </div>
       )}
+
+      {/* ── DAILY OPERATIONS TAB ── */}
+      {tab === 'daily' && (() => {
+        const today = '2026-04-28' // Mocking today's date based on recent data
+        const todayInvoices = invoices.filter(i => i.date === today)
+        const todayCash = todayInvoices.filter(i => i.method === 'Cash').reduce((s, i) => s + i.paid, 0)
+        const todayOnline = todayInvoices.filter(i => i.method !== 'Cash' && i.paid > 0).reduce((s, i) => s + i.paid, 0)
+        
+        return (
+          <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
+              {[
+                { label: 'Today Total Invoices', val: todayInvoices.length, icon: FileText, color: '#0f172a', isCnt: true },
+                { label: 'Daily Cash Collected', val: todayCash, icon: Banknote, color: '#f59e0b' },
+                { label: 'Daily Online Payments', val: todayOnline, icon: CreditCard, color: '#10b981' },
+              ].map((s, idx) => (
+                <div key={s.label} className="glass-card" style={{ padding: '32px', borderRadius: '32px', borderBottom: `6px solid ${s.color}`, animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both` }}>
+                  <div style={{ background: `${s.color}10`, color: s.color, width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                    <s.icon size={24} />
+                  </div>
+                  <div style={{ fontSize: '36px', fontWeight: 950, color: '#0f172a', letterSpacing: '-1.5px' }}>{s.isCnt ? s.val : `SAR ${s.val.toLocaleString()}`}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', marginTop: '4px', letterSpacing: '1px' }}>{s.label.toUpperCase()}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 950, margin: 0 }}>Daily Activity Stream</h3>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '6px 16px', borderRadius: '10px' }}>DATE: {today}</div>
+            </div>
+
+            <div className="table-container" style={{ borderRadius: '32px', border: '1px solid #e2e8f0', background: 'white', overflow: 'hidden' }}>
+              <table className="table">
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: '24px' }}>TRANSACTION</th>
+                    <th>CLIENT</th>
+                    <th>TECHNICIAN</th>
+                    <th>AMOUNT</th>
+                    <th>METHOD</th>
+                    <th>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todayInvoices.map(inv => (
+                    <tr key={inv.id}>
+                      <td style={{ padding: '20px 24px', fontWeight: 950, color: '#3b82f6', fontFamily: 'monospace' }}>{inv.id}</td>
+                      <td style={{ fontWeight: 800 }}>{inv.client}</td>
+                      <td style={{ fontWeight: 700, color: '#64748b' }}>{inv.tech}</td>
+                      <td style={{ fontWeight: 950, fontSize: '15px' }}>SAR {inv.total.toLocaleString()}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: inv.method === 'Cash' ? '#f59e0b' : '#3b82f6', fontSize: '12px' }}>
+                          {inv.method === 'Cash' ? <Banknote size={14} /> : <CreditCard size={14} />}
+                          {inv.method || 'Online'}
+                        </div>
+                      </td>
+                      <td>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: inv.status === 'Paid' ? '#ecfdf5' : '#fffbeb', color: inv.status === 'Paid' ? '#10b981' : '#f59e0b', padding: '4px 12px', borderRadius: '10px', fontSize: '10px', fontWeight: 900, width: 'fit-content' }}>
+                          {inv.status.toUpperCase()}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {todayInvoices.length === 0 && (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 800 }}>No transactions recorded yet for today.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── TECHNICIAN BALANCES TAB ── */}
       {tab === 'balances' && (() => {

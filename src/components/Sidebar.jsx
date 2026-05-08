@@ -36,6 +36,7 @@ const NAV_DATA = [
     section: 'Finance',
     items: [
       { id: 'accounting', icon: DollarSign, label: 'Accounting System', badge: 3 },
+      { id: 'installments', icon: CreditCard, label: 'Installments' },
     ],
   },
   {
