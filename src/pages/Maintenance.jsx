@@ -383,6 +383,8 @@ function AnalyticsView() {
 
 export default function Maintenance() {
   const toast = useToast()
+  const [requests, setRequests]           = useState(maintenanceRequests)
+  const [allTeams, setAllTeams]           = useState(teams)
   const [statusFilter, setStatusFilter]   = useState('All')
   const [priorityFilter, setPriorityFilter] = useState('All')
   const [search, setSearch]               = useState('')
@@ -395,12 +397,15 @@ export default function Maintenance() {
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [mounted, setMounted]   = useState(false)
   const [multiTechs, setMultiTechs]       = useState([])
+  const [selectedTeam, setSelectedTeam]   = useState('')
   const [newStatus, setNewStatus]         = useState('')
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [editingTeam, setEditingTeam]     = useState(null)
+  const [teamForm, setTeamForm]           = useState({ name: '', area: '', leadId: '', members: [] })
 
   useEffect(() => { setMounted(true) }, [])
 
-  const filtered = maintenanceRequests.filter(r => {
+  const filtered = requests.filter(r => {
     const matchStatus   = statusFilter === 'All' || r.status === statusFilter
     const matchPriority = priorityFilter === 'All' || r.priority === priorityFilter
     const matchSearch   = r.client.toLowerCase().includes(search.toLowerCase()) ||
@@ -410,10 +415,82 @@ export default function Maintenance() {
   })
 
   const openView   = r => { setSelected(r); setNewStatus(r.status); setViewTab('client'); setModal('view') }
-  const openAssign = (r, e) => { e?.stopPropagation(); setSelected(r); setAssignTech(r.technician !== 'Unassigned' ? r.technician : ''); setModal('assign') }
+  const openAssign = (r, e) => { e?.stopPropagation(); setSelected(r); setAssignTech(r.technician !== 'Unassigned' ? r.technician : ''); setSelectedTeam(r.teamId || ''); setModal('assign') }
   const openStatus = (r, e) => { e?.stopPropagation(); setSelected(r); setNewStatus(r.status); setModal('status') }
 
-  const counts = { All: maintenanceRequests.length, ...Object.fromEntries(STATUS_FLOW.map(s => [s, maintenanceRequests.filter(r => r.status === s).length])) }
+  const handleEditTeam = (teamId, e) => { 
+    e?.stopPropagation()
+    const team = allTeams.find(t => t.id === teamId)
+    if (team) {
+      setEditingTeam(team)
+      setTeamForm({ name: team.name, area: team.area, leadId: team.leadId, members: team.members })
+      setModal('edit_team')
+    }
+  }
+  const handleDeleteTeam = (teamId, e) => { 
+    e?.stopPropagation()
+    const team = allTeams.find(t => t.id === teamId)
+    if (team) {
+      setEditingTeam(team)
+      setModal('delete_team')
+    }
+  }
+  const handleSaveTeam = () => { 
+    const updated = allTeams.map(t => t.id === editingTeam.id ? { ...t, ...teamForm } : t)
+    setAllTeams(updated)
+    toast(`Team "${teamForm.name}" updated`, 'success')
+    setModal('assign') 
+  }
+  const handleConfirmDeleteTeam = () => { 
+    setAllTeams(allTeams.filter(t => t.id !== editingTeam.id))
+    toast(`Team "${editingTeam.name}" disbanded`, 'warning')
+    setModal('assign') 
+  }
+  const handleAddTeam = () => {
+    setTeamForm({ name: '', area: '', leadId: '', members: [] })
+    setModal('add_team')
+  }
+  const handleSaveNewTeam = () => {
+    if (!teamForm.name) { toast('Please name the team', 'warning'); return }
+    const newTeam = {
+      id: `TEAM-${allTeams.length + 1}`,
+      ...teamForm,
+      leadName: users.find(u => u.id === parseInt(teamForm.leadId))?.name || 'Assigned Lead',
+      activeJobs: 0,
+      color: '#3B82F6'
+    }
+    setAllTeams([...allTeams, newTeam])
+    toast(`New Team "${teamForm.name}" assembled`, 'success')
+    setModal('assign')
+  }
+
+  const handleConfirmDispatch = () => {
+    const updated = requests.map(r => {
+      if (r.id === selected.id) {
+        if (assignMode === 'single') {
+          return { ...r, technician: assignTech, teamId: null, assignedTechs: [users.find(u => u.name === assignTech)?.id] }
+        } else if (assignMode === 'team') {
+          const team = allTeams.find(t => t.id === selectedTeam)
+          return { ...r, technician: team.name, teamId: team.id, assignedTechs: team.members }
+        } else {
+          return { ...r, technician: 'Custom Group', teamId: null, assignedTechs: multiTechs }
+        }
+      }
+      return r
+    })
+    setRequests(updated)
+    toast(`Mission personnel deployed`, 'success')
+    setModal(null)
+  }
+
+  const handleSyncStatus = () => {
+    const updated = requests.map(r => r.id === selected.id ? { ...r, status: newStatus } : r)
+    setRequests(updated)
+    toast(`Status recalibrated to ${newStatus}`, 'success')
+    setModal(null)
+  }
+
+  const counts = { All: requests.length, ...Object.fromEntries(STATUS_FLOW.map(s => [s, requests.filter(r => r.status === s).length])) }
 
   return (
     <div style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease' }}>
@@ -434,13 +511,13 @@ export default function Maintenance() {
             color: '#8b5cf6',
             letterSpacing: '1px'
           }}>
-            <Wrench size={14} /> MAINTENANCE PROTOCOL
+            <Wrench size={14} /> SERVICE TICKETS
           </div>
           <h1 className="page-title" style={{ fontSize: '36px', fontWeight: 950, letterSpacing: '-1.5px' }}>
-            Infrastructure Support
+            Job Management
           </h1>
           <p className="page-subtitle" style={{ fontSize: '15px', marginTop: '4px', opacity: 0.7 }}>
-            Managing {maintenanceRequests.length} active service deployments across regions.
+            Managing {requests.length} active jobs across regions.
           </p>
         </div>
         <div className="page-header-actions" style={{ gap: '16px' }}>
@@ -478,7 +555,7 @@ export default function Maintenance() {
               <div style={{ fontSize: '14px', fontWeight: 950, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Clock size={18} color="#3b82f6" /> Service Lifecycle
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>ACTIVE PIPELINE FLOW</div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>JOB PIPELINE</div>
             </div>
             
             <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '12px' }}>
@@ -760,7 +837,7 @@ export default function Maintenance() {
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#3b82f6', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 900 }}>{selected.technician.charAt(0)}</div>
-                      <div style={{ fontWeight: 800 }}>{selected.technician}</div>
+                      <div style={{ fontWeight: 800 }}>{selected.teamId ? (allTeams.find(t => t.id === selected.teamId)?.name || 'Team Assigned') : selected.technician}</div>
                     </div>
                   )}
                 </div>
@@ -940,7 +1017,7 @@ export default function Maintenance() {
           footer={
             <>
               <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Cancel</button>
-              <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a' }} onClick={() => { toast(`Mission personnel deployed`, 'success'); setModal(null) }}>Confirm Dispatch</button>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a' }} onClick={handleConfirmDispatch}>Confirm Dispatch</button>
             </>
           }
         >
@@ -975,15 +1052,28 @@ export default function Maintenance() {
 
           {assignMode === 'team' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {teams.map(t => (
-                <div key={t.id} onClick={() => setSelectedTeam(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px', borderRadius: '18px', border: `2px solid ${selectedTeam === t.id ? '#10b981' : '#f1f5f9'}`, background: selectedTeam === t.id ? '#10b98108' : 'white', cursor: 'pointer' }}>
+              {allTeams.map(t => (
+                <div key={t.id} onClick={() => setSelectedTeam(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px', borderRadius: '18px', border: `2px solid ${selectedTeam === t.id ? '#10b981' : '#f1f5f9'}`, background: selectedTeam === t.id ? '#10b98108' : 'white', cursor: 'pointer', transition: 'all 0.2s' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: t.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Shield size={20} /></div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{t.name}</div>
                     <div style={{ fontSize: '11px', color: '#64748b' }}>{t.members.length} Members · {t.area}</div>
                   </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={(e) => handleEditTeam(t.id, e)} className="btn-icon" style={{ width: '32px', height: '32px', background: '#f8fafc' }} title="Edit"><Settings size={14} /></button>
+                    <button onClick={(e) => handleDeleteTeam(t.id, e)} className="btn-icon" style={{ width: '32px', height: '32px', background: '#fef2f2', color: '#ef4444' }} title="Delete"><AlertTriangle size={14} /></button>
+                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px' }}>
+                      {selectedTeam === t.id && <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#10b981', border: '2px solid white' }} />}
+                    </div>
+                  </div>
                 </div>
               ))}
+              <button 
+                onClick={handleAddTeam}
+                style={{ width: '100%', padding: '16px', borderRadius: '18px', border: '2px dashed #cbd5e1', background: 'transparent', color: '#64748b', fontWeight: 800, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '8px' }}
+              >
+                <Plus size={18} /> ASSEMBLE NEW TEAM
+              </button>
             </div>
           )}
 
@@ -1015,7 +1105,7 @@ export default function Maintenance() {
           footer={
             <>
               <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Cancel</button>
-              <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a' }} onClick={() => { toast(`Status recalibrated`, 'success'); setModal(null) }}>Sync Status</button>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', background: '#0f172a' }} onClick={handleSyncStatus}>Sync Status</button>
             </>
           }
         >
@@ -1119,6 +1209,127 @@ export default function Maintenance() {
             )}
 
             <button className="btn btn-ghost" style={{ width: '100%', marginTop: '32px', borderRadius: '16px', padding: '14px' }} onClick={() => setSelectedRequest(null)}>Dismiss Audit</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Team Management Modals */}
+      {modal === 'edit_team' && editingTeam && (
+        <Modal title="Reconfigure Field Team" onClose={() => setModal('assign')} size="md"
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal('assign')}>Cancel</button>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', padding: '10px 32px', background: '#0f172a' }} onClick={handleSaveTeam}>
+                Save Changes
+              </button>
+            </>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM DESIGNATION</label>
+              <input className="form-control" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.name} onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>OPERATIONAL AREA</label>
+              <input className="form-control" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.area} onChange={e => setTeamForm(f => ({ ...f, area: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM LEAD</label>
+              <select className="form-control form-select" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.leadId} onChange={e => setTeamForm(f => ({ ...f, leadId: e.target.value }))}>
+                {users.filter(u => ['Engineer', 'Technician'].includes(u.role)).map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>MEMBER SELECTION</label>
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                {users.filter(u => u.role === 'Technician').map(u => (
+                  <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'background 0.2s', background: teamForm.members.includes(u.id) ? 'white' : 'transparent', border: teamForm.members.includes(u.id) ? '1px solid #3b82f6' : '1px solid transparent' }}>
+                    <input type="checkbox" checked={teamForm.members.includes(u.id)} onChange={e => {
+                      if (e.target.checked) setTeamForm(f => ({ ...f, members: [...f.members, u.id] }))
+                      else setTeamForm(f => ({ ...f, members: f.members.filter(id => id !== u.id) }))
+                    }} style={{ width: '18px', height: '18px' }} />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{u.name}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{u.specialty} · {u.city}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'delete_team' && editingTeam && (
+        <Modal title="Disband Team" onClose={() => setModal('assign')} size="sm"
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal('assign')}>Abort</button>
+              <button className="btn btn-danger" style={{ borderRadius: '16px', padding: '12px 32px' }} onClick={handleConfirmDeleteTeam}>Disband Team</button>
+            </>
+          }
+        >
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ background: '#fef2f2', color: '#ef4444', width: '80px', height: '80px', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transform: 'rotate(5deg)' }}>
+              <AlertTriangle size={40} />
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.5px' }}>Confirm Disband?</h3>
+            <p style={{ fontSize: '15px', color: '#64748b', lineHeight: 1.6 }}>
+              This will permanently disband the <strong>{editingTeam.name}</strong>. Members will be returned to the individual specialist pool.
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'add_team' && (
+        <Modal title="Assemble New Field Team" onClose={() => setModal('assign')} size="md"
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal('assign')}>Cancel</button>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', padding: '10px 32px', background: '#0f172a' }} onClick={handleSaveNewTeam}>
+                Create Team
+              </button>
+            </>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM DESIGNATION</label>
+              <input className="form-control" placeholder="e.g. Solar Task Force" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.name} onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>OPERATIONAL AREA</label>
+              <input className="form-control" placeholder="e.g. Riyadh East" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.area} onChange={e => setTeamForm(f => ({ ...f, area: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>SELECT TEAM LEAD</label>
+              <select className="form-control form-select" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.leadId} onChange={e => setTeamForm(f => ({ ...f, leadId: e.target.value }))}>
+                <option value="">Select Lead</option>
+                {users.filter(u => ['Engineer', 'Technician'].includes(u.role)).map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>ADD MEMBERS</label>
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                {users.filter(u => u.role === 'Technician').map(u => (
+                  <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'background 0.2s', background: teamForm.members.includes(u.id) ? 'white' : 'transparent', border: teamForm.members.includes(u.id) ? '1px solid #3b82f6' : '1px solid transparent' }}>
+                    <input type="checkbox" checked={teamForm.members.includes(u.id)} onChange={e => {
+                      if (e.target.checked) setTeamForm(f => ({ ...f, members: [...f.members, u.id] }))
+                      else setTeamForm(f => ({ ...f, members: f.members.filter(id => id !== u.id) }))
+                    }} style={{ width: '18px', height: '18px' }} />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{u.name}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{u.specialty} · {u.city}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </Modal>
       )}

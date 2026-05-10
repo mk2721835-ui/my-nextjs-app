@@ -361,13 +361,13 @@ export default function Accounting() {
             color: '#10b981',
             letterSpacing: '1px'
           }}>
-            <ShieldCheck size={14} /> FINANCIAL GOVERNANCE
+            <ShieldCheck size={14} /> FINANCE & BILLING
           </div>
           <h1 className="page-title" style={{ fontSize: '36px', fontWeight: 950, letterSpacing: '-1.5px' }}>
-            Accounting Control
+            Accounting Center
           </h1>
           <p className="page-subtitle" style={{ fontSize: '15px', marginTop: '4px', opacity: 0.7 }}>
-            Real-time fiscal monitoring, field invoice orchestration, and revenue analytics.
+            Monitoring payments, field cash, and financial reporting.
           </p>
         </div>
         <div className="page-header-actions" style={{ gap: '16px' }}>
@@ -527,10 +527,10 @@ export default function Accounting() {
               <table className="table">
                 <thead>
                   <tr style={{ background: '#f8fafc' }}>
-                    <th style={{ padding: '24px' }}>IDENTIFIER</th>
-                    <th>CLIENT IDENTITY</th>
-                    <th>FISCAL STATUS</th>
-                    <th>VALUATION</th>
+                    <th style={{ padding: '24px' }}>INVOICE ID</th>
+                    <th>CLIENT NAME</th>
+                    <th>PAYMENT STATUS</th>
+                    <th>TOTAL AMOUNT</th>
                     <th>COLLECTED</th>
                     <th>ACTIONS</th>
                   </tr>

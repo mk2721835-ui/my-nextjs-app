@@ -13,6 +13,7 @@ import Login from './pages/Login'
 import TechnicianApp from './pages/TechnicianApp'
 import Chat from './pages/Chat'
 import Settings from './pages/Settings'
+import Profile from './pages/Profile'
 import Installments from './pages/Installments'
 import { users } from './data'
 
@@ -62,6 +63,7 @@ const PAGE_LABELS = {
   fleet:        'Fleet / Vehicles',
   chat:         'Communication Center',
   settings:     'System Settings',
+  profile:      'My Profile',
 }
 
 // ── Admin app ──────────────────────────────────────────────────────────────────
@@ -82,6 +84,7 @@ function AdminApp({ onLogout }) {
       case 'fleet':        return <Fleet />
       case 'chat':         return <Chat />
       case 'settings':     return <Settings />
+      case 'profile':      return <Profile />
       default:             return <Dashboard onNavigate={setPage} />
     }
   }

@@ -141,13 +141,13 @@ export default function Reports() {
             color: '#3b82f6',
             letterSpacing: '1px'
           }}>
-            <Target size={14} /> INTELLIGENCE HUB
+            <Target size={14} /> REPORTS & DATA
           </div>
           <h1 className="page-title" style={{ fontSize: '36px', fontWeight: 950, letterSpacing: '-1.5px' }}>
-            Executive Analytics
+            System Analytics
           </h1>
           <p className="page-subtitle" style={{ fontSize: '15px', marginTop: '4px', opacity: 0.7 }}>
-            Synthesizing field operations, financial growth, and technical excellence.
+            Performance metrics, financial summaries, and team analytics.
           </p>
         </div>
         <div className="page-header-actions" style={{ gap: '16px' }}>
@@ -183,10 +183,10 @@ export default function Reports() {
         overflow: 'hidden'
       }}>
         <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: '11px', fontWeight: 900, color: 'rgba(255,255,255,0.6)', letterSpacing: '2px', marginBottom: '8px' }}>FISCAL PERFORMANCE INDICATOR</div>
+          <div style={{ fontSize: '11px', fontWeight: 900, color: 'rgba(255,255,255,0.6)', letterSpacing: '2px', marginBottom: '8px' }}>TOTAL REVENUE PERFORMANCE</div>
           <div style={{ fontSize: '48px', fontWeight: 950, letterSpacing: '-2px' }}>SAR {totalRevenue.toLocaleString()}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4ade80', fontSize: '14px', fontWeight: 800, marginTop: '8px' }}>
-            <ArrowUpRight size={18} /> +{growthPct}% YEAR-OVER-YEAR VELOCITY
+            <ArrowUpRight size={18} /> +{growthPct}% REVENUE GROWTH
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', flex: 1, position: 'relative', zIndex: 1 }}>
@@ -286,7 +286,7 @@ export default function Reports() {
           {/* Service Sector Breakdown */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div className="glass-card" style={{ padding: '24px', borderRadius: '32px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 950, marginBottom: '20px' }}>Market Concentration</div>
+              <div style={{ fontSize: '14px', fontWeight: 950, marginBottom: '20px' }}>Service Categories</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {serviceBreakdown.map(s => (
                   <div key={s.type}>

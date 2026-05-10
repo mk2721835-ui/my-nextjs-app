@@ -8,11 +8,14 @@ import {
   Package, 
   AlertTriangle, 
   CreditCard,
-  MessageSquare
+  MessageSquare,
+  User,
+  LogOut
 } from 'lucide-react'
 
 export default function Header({ pageLabel, onToggle, onLogout, onNavigate }) {
   const [notifOpen, setNotifOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const notifications = [
     { icon: FileText, text: 'New invoice INV-0045 from field', time: '5 min ago', unread: true, color: '#3b82f6' },
@@ -121,16 +124,63 @@ export default function Header({ pageLabel, onToggle, onLogout, onNavigate }) {
         <div style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 8px' }} />
 
         {/* Profile */}
-        <div className="header-profile" style={{ cursor: 'pointer' }}>
-          <div className="header-profile-avatar" style={{ 
-            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
-          }}>SM</div>
-          <div className="hide-mobile">
-            <div className="header-profile-name" style={{ fontWeight: 700 }}>Saud Al-Maliki</div>
-            <div className="header-profile-role">Administrator</div>
+        <div style={{ position: 'relative' }}>
+          <div 
+            className="header-profile" 
+            style={{ cursor: 'pointer' }}
+            onClick={() => setProfileOpen(o => !o)}
+          >
+            <div className="header-profile-avatar" style={{ 
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+            }}>SM</div>
+            <div className="hide-mobile">
+              <div className="header-profile-name" style={{ fontWeight: 700 }}>Saud Al-Maliki</div>
+              <div className="header-profile-role">Administrator</div>
+            </div>
+            <ChevronDown size={14} style={{ color: 'var(--text-3)', marginLeft: 4, transform: profileOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </div>
-          <ChevronDown size={14} style={{ color: 'var(--text-3)', marginLeft: 4 }} />
+
+          {profileOpen && (
+            <div className="dropdown-menu" style={{
+              position: 'absolute', right: 0, top: '120%',
+              background: '#ffffff', borderRadius: '16px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.15)', border: '1px solid #f1f5f9',
+              width: 220, zIndex: 200, overflow: 'hidden', padding: '8px'
+            }}>
+              <button 
+                className="btn btn-ghost" 
+                style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px', borderRadius: '12px', fontSize: 13, fontWeight: 700, gap: '12px' }}
+                onClick={() => { onNavigate('profile'); setProfileOpen(false); }}
+              >
+                <div style={{ width: 28, height: 28, borderRadius: '8px', background: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={16} />
+                </div>
+                My Identity
+              </button>
+              <button 
+                className="btn btn-ghost" 
+                style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px', borderRadius: '12px', fontSize: 13, fontWeight: 700, gap: '12px' }}
+                onClick={() => { onNavigate('settings'); setProfileOpen(false); }}
+              >
+                <div style={{ width: 28, height: 28, borderRadius: '8px', background: '#f8fafc', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertTriangle size={16} />
+                </div>
+                System Settings
+              </button>
+              <div style={{ height: 1, background: '#f1f5f9', margin: '8px 0' }} />
+              <button 
+                className="btn btn-ghost" 
+                style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px', borderRadius: '12px', fontSize: 13, fontWeight: 700, gap: '12px', color: '#ef4444' }}
+                onClick={onLogout}
+              >
+                <div style={{ width: 28, height: 28, borderRadius: '8px', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <LogOut size={16} />
+                </div>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

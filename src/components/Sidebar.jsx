@@ -121,11 +121,21 @@ export default function Sidebar({ page, onNavigate, collapsed, onLogout, onToggl
 
       {/* User Footer Section */}
       <div className="sidebar-footer">
-        <div className="user-avatar">
+        <div 
+          className="user-avatar" 
+          onClick={() => onNavigate('profile')} 
+          style={{ cursor: 'pointer' }}
+          title="View My Profile"
+        >
           SM
         </div>
         {!collapsed && (
-          <div className="user-info">
+          <div 
+            className="user-info" 
+            onClick={() => onNavigate('profile')} 
+            style={{ cursor: 'pointer' }}
+            title="View My Profile"
+          >
             <div className="user-name">Saud Al-Maliki</div>
             <div className="user-role">Administrator</div>
           </div>

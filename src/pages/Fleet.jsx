@@ -174,7 +174,7 @@ function CreativeVehicleCard({ vehicle, onView, onEdit, onArchive }) {
         position: 'relative',
         zIndex: 1
       }}>
-        <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '8px' }}>ODOMETER MANIFEST</div>
+        <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '8px' }}>ODOMETER READING</div>
         <div style={{ fontSize: '32px', fontWeight: 950, color: '#0f172a', fontFamily: 'monospace', letterSpacing: '-1px' }}>
           {vehicle.odometerCurrent.toLocaleString()}
           <span style={{ fontSize: '14px', color: '#94a3b8', marginLeft: '4px' }}>KM</span>
@@ -277,13 +277,13 @@ export default function Fleet() {
             color: '#3b82f6',
             letterSpacing: '1px'
           }}>
-            <Activity size={14} /> LOGISTICS GOVERNANCE
+            <Activity size={14} /> FLEET MANAGEMENT
           </div>
           <h1 className="page-title" style={{ fontSize: '36px', fontWeight: 950, letterSpacing: '-1.5px' }}>
-            Infrastructure Fleet
+            Vehicle Fleet
           </h1>
           <p className="page-subtitle" style={{ fontSize: '15px', marginTop: '4px', opacity: 0.7 }}>
-            Orchestrating {vehicles.length} tactical units across the operational grid.
+            Managing {vehicles.length} vehicles and technician assignments.
           </p>
         </div>
         <div className="page-header-actions" style={{ gap: '16px' }}>
@@ -597,8 +597,10 @@ export default function Fleet() {
                     <div>
                     {l.cost ? (
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>EXPENSE</div>
-                        <div style={{ fontSize: '14px', fontWeight: 950, color: '#10b981' }}>SAR {l.cost}</div>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8' }}>{['Fuel', 'Damage', 'Maintenance', 'Fault'].includes(l.type) ? 'EXPENSE' : 'VALUATION'}</div>
+                        <div style={{ fontSize: '14px', fontWeight: 950, color: ['Fuel', 'Damage', 'Maintenance', 'Fault'].includes(l.type) ? '#ef4444' : '#10b981' }}>
+                          {['Fuel', 'Damage', 'Maintenance', 'Fault'].includes(l.type) ? '-' : ''}SAR {l.cost}
+                        </div>
                       </div>
                     ) : (
                       <div style={{ textAlign: 'right' }}>
@@ -648,7 +650,9 @@ export default function Fleet() {
                       <td style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>{l.description}</td>
                       <td>
                         {l.cost ? (
-                          <div style={{ fontWeight: 900, color: '#10b981' }}>SAR {l.cost}</div>
+                          <div style={{ fontWeight: 900, color: ['Fuel', 'Damage', 'Maintenance', 'Fault'].includes(l.type) ? '#ef4444' : '#10b981' }}>
+                            {['Fuel', 'Damage', 'Maintenance', 'Fault'].includes(l.type) ? '-' : ''}SAR {l.cost}
+                          </div>
                         ) : (
                           <div style={{ color: '#94a3b8' }}>—</div>
                         )}
@@ -672,8 +676,8 @@ export default function Fleet() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
             {[
               { label: 'Total KM Logged', val: assignments.reduce((s,a) => s + (a.endOdometer && a.startOdometer ? a.endOdometer - a.startOdometer : 0), 0).toLocaleString(), sub: 'Across all assignments', color: '#3b82f6', icon: Gauge },
-              { label: 'Fuel Events', val: logs.filter(l => l.type === 'Fuel').length, sub: 'Logged refuel entries', color: '#10b981', icon: Fuel },
-              { label: 'Total Fuel Cost', val: `SAR ${logs.filter(l=>l.type==='Fuel').reduce((s,l)=>s+(l.cost||0),0).toLocaleString()}`, sub: 'Operational fuel spend', color: '#f59e0b', icon: DollarSign },
+              { label: 'Total Fuel/Damage', val: `SAR ${logs.filter(l => ['Fuel', 'Damage'].includes(l.type)).reduce((s,l)=>s+(l.cost||0),0).toLocaleString()}`, sub: 'Fleet operational spend', color: '#ef4444', icon: Fuel },
+              { label: 'Technician Labor Cost', val: `SAR ${assignments.length * 450}`, sub: 'Estimated mission salaries', color: '#10b981', icon: DollarSign },
             ].map(s => (
               <div key={s.label} className="glass-card" style={{ padding: '24px', borderRadius: '28px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: `${s.color}15`, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}><s.icon size={22} /></div>

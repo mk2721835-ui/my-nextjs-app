@@ -415,6 +415,7 @@ export default function UserManagement() {
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
   const [form, setForm]         = useState({ name:'', role:'Client', email:'', phone:'', city:'', status:'Active' })
+  const [teamForm, setTeamForm] = useState({ name: '', area: '', leadId: '', members: [] })
   const [mounted, setMounted]   = useState(false)
 
   useEffect(() => {
@@ -436,10 +437,17 @@ export default function UserManagement() {
   const handleSave   = () => { toast(modal==='add' ? `User "${form.name}" added successfully` : `User "${form.name}" updated`, 'success'); setModal(null) }
   const handleDelete = () => { toast(`User "${selected.name}" removed`, 'warning'); setModal(null) }
 
+  const openAddTeam = () => { setTeamForm({ name: '', area: '', leadId: '', members: [] }); setModal('add_team') }
+  const openEditTeam = (team) => { setSelected(team); setTeamForm({ name: team.name, area: team.area, leadId: team.leadId, members: team.members }); setModal('edit_team') }
+  const openDeleteTeam = (team) => { setSelected(team); setModal('delete_team') }
+  const handleSaveTeam = () => { toast(`Team "${teamForm.name}" ${modal === 'add_team' ? 'assembled' : 'updated'}`, 'success'); setModal(null) }
+  const handleDeleteTeam = () => { toast(`Team "${selected.name}" disbanded`, 'warning'); setModal(null) }
+
   const TABS = [
     { id:'all',         label:'Entire Directory', count:users.length },
     { id:'client',      label:'Clients',          count:users.filter(u => u.role==='Client').length },
     { id:'technician',  label:'Technicians',      count:users.filter(u => u.role==='Technician').length },
+    { id:'payroll',     label:'Payroll Manifest',  icon: DollarSign, count: users.filter(u => u.role === 'Technician').length },
     { id:'teams',       label:'Operational Teams', count:teams.length },
     { id:'management',  label:'Staff',            count:users.filter(u => ['Engineer','Accountant','Management'].includes(u.role)).length },
   ]
@@ -549,7 +557,7 @@ export default function UserManagement() {
               style={{ fontSize: '14px', fontWeight: 500 }}
             />
           </div>
-          <ViewToggle mode={viewMode} setMode={setViewMode} />
+          {tab !== 'payroll' && <ViewToggle mode={viewMode} setMode={setViewMode} />}
           <button className="btn btn-ghost" onClick={() => toast('Users exported', 'success')} style={{ width: '48px', height: '48px', borderRadius: '16px' }}>
             <Download size={20} />
           </button>
@@ -557,7 +565,49 @@ export default function UserManagement() {
       </div>
 
       {/* ── GRID VIEW ── */}
-      {viewMode === 'grid' ? (
+      {/* ── MAIN CONTENT ENGINE ── */}
+      {tab === 'payroll' ? (
+        <div className="table-container" style={{ borderRadius: '30px', border: '1px solid #e2e8f0', background: 'white', animation: 'fadeIn 0.5s ease-out' }}>
+          <table className="table">
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                <th style={{ padding: '24px' }}>TECHNICIAN IDENTITY</th>
+                <th>ROLE</th>
+                <th>MONTHLY BASE</th>
+                <th>BONUS/COMMISSION</th>
+                <th>TOTAL DISBURSEMENT</th>
+                <th>STATUS</th>
+                <th style={{ textAlign: 'right' }}>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.filter(u => u.role === 'Technician' && (u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))).map(u => (
+                <tr key={u.id}>
+                  <td style={{ padding: '20px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div className="avatar" style={{ background: u.color, width: '40px', height: '40px', borderRadius: '12px', fontSize: '14px', fontWeight: 900 }}>{u.initials}</div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '15px' }}>{u.name}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>{u.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span style={{ fontSize: '11px', fontWeight: 900, color: '#64748b' }}>{u.role.toUpperCase()}</span></td>
+                  <td style={{ fontWeight: 800 }}>SAR 8,500</td>
+                  <td style={{ fontWeight: 800, color: '#3b82f6' }}>SAR 3,950</td>
+                  <td style={{ fontWeight: 950, fontSize: '16px', color: '#10b981' }}>SAR 12,450</td>
+                  <td>
+                    <span style={{ padding: '4px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 900, background: '#ecfdf5', color: '#10b981' }}>PAID</span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openView(u)} title="View Payroll Profile"><DollarSign size={16} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : viewMode === 'grid' ? (
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
@@ -601,8 +651,9 @@ export default function UserManagement() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '12px', fontWeight: 800, color: '#10b981' }}>{team.activeJobs} Active Jobs</div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => toast('Team analytics loading...', 'info')}><Activity size={16} /></button>
-                      <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => setModal('edit_team')}><Pencil size={16} /></button>
+                      <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => { setSelected(team); setProfileTab('activity'); setModal('view_team_activity') }} title="Team Activity"><Activity size={16} /></button>
+                      <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openEditTeam(team)} title="Edit Team"><Pencil size={16} /></button>
+                      <button className="btn btn-danger btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openDeleteTeam(team)} title="Delete Team"><Trash2 size={16} /></button>
                     </div>
                   </div>
                 </div>
@@ -610,7 +661,7 @@ export default function UserManagement() {
               <div 
                 className="glass-card" 
                 style={{ border: '2px dashed #cbd5e1', background: 'transparent', borderRadius: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '280px', cursor: 'pointer' }}
-                onClick={() => setModal('add_team')}
+                onClick={openAddTeam}
               >
                 <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
                   <Plus size={32} color="#94a3b8" />
@@ -698,11 +749,14 @@ export default function UserManagement() {
                     <td style={{ fontSize: '12px', color: '#94a3b8' }}>{team.id}</td>
                     <td>
                       <div className="table-actions" style={{ gap: '10px' }}>
-                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => toast('Team analytics loading...', 'info')}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => { setSelected(team); setProfileTab('activity'); setModal('view_team_activity') }}>
                           <Activity size={16} />
                         </button>
-                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => setModal('edit_team')}>
+                        <button className="btn btn-ghost btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openEditTeam(team)}>
                           <Settings size={16} />
+                        </button>
+                        <button className="btn btn-danger btn-sm" style={{ width: '36px', height: '36px' }} onClick={() => openDeleteTeam(team)}>
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
@@ -782,13 +836,11 @@ export default function UserManagement() {
             <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 600 }}>
               Viewing <span style={{ color: '#0f172a' }}>{filtered.length}</span> of <span style={{ color: '#0f172a' }}>{users.length}</span> system identities
             </span>
-            <div className="table-pagination-btns">
-              <button className="table-pagination-btn active">1</button>
-              <button className="table-pagination-btn">2</button>
-            </div>
           </div>
         </div>
       )}
+
+
 
       {/* ── All Modals keep their premium structure from before but with updated branding ── */}
       {/* ── Standardized Identity Profile Modal ── */}
@@ -1363,29 +1415,29 @@ export default function UserManagement() {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>FULL LEGAL IDENTITY</label>
+              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>FULL NAME</label>
               <input className="form-control" style={{ borderRadius: '16px', padding: '14px 18px', fontWeight: 600 }} value={form.name} onChange={e => setForm(f => ({ ...f, name:e.target.value }))} placeholder="Ahmed Al-Rashidi" />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>ORGANIZATIONAL ROLE</label>
+              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>USER ROLE</label>
               <select className="form-control form-select" style={{ borderRadius: '16px', fontWeight: 600 }} value={form.role} onChange={e => setForm(f => ({ ...f, role:e.target.value }))}>
                 {ROLES.map(r => <option key={r}>{r}</option>)}
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>COMMUNICATION ENDPOINT</label>
+              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>EMAIL ADDRESS</label>
               <input className="form-control" style={{ borderRadius: '16px', padding: '14px 18px', fontWeight: 600 }} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email:e.target.value }))} placeholder="user@domain.com" />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>MOBILE PROTOCOL</label>
+              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>PHONE NUMBER</label>
               <input className="form-control" style={{ borderRadius: '16px', padding: '14px 18px', fontWeight: 600 }} value={form.phone} onChange={e => setForm(f => ({ ...f, phone:e.target.value }))} placeholder="+966 5X XXX XXXX" />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>PRIMARY OPERATION BASE</label>
+              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>CITY / LOCATION</label>
               <input className="form-control" style={{ borderRadius: '16px', padding: '14px 18px', fontWeight: 600 }} value={form.city} onChange={e => setForm(f => ({ ...f, city:e.target.value }))} placeholder="Riyadh, SA" />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>ACCOUNT VITALITY</label>
+              <label className="form-label" style={{ fontSize: '10px', letterSpacing: '1px' }}>ACCOUNT STATUS</label>
               <select className="form-control form-select" style={{ borderRadius: '16px', fontWeight: 600 }} value={form.status} onChange={e => setForm(f => ({ ...f, status:e.target.value }))}>
                 <option>Active</option>
                 <option>Inactive</option>
@@ -1762,7 +1814,7 @@ export default function UserManagement() {
           footer={
             <>
               <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Cancel</button>
-              <button className="btn btn-primary" style={{ borderRadius: '16px', padding: '10px 32px', background: '#0f172a' }} onClick={() => { toast('New Team Assembled', 'success'); setModal(null) }}>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', padding: '10px 32px', background: '#0f172a' }} onClick={handleSaveTeam}>
                 Assemble Team
               </button>
             </>
@@ -1771,16 +1823,16 @@ export default function UserManagement() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="form-group">
               <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM DESIGNATION</label>
-              <input className="form-control" placeholder="e.g. Solar Strike Team" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} />
+              <input className="form-control" placeholder="e.g. Solar Strike Team" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.name} onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))} />
             </div>
             <div className="form-group">
               <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>OPERATIONAL AREA</label>
-              <input className="form-control" placeholder="e.g. Riyadh East" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} />
+              <input className="form-control" placeholder="e.g. Riyadh East" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.area} onChange={e => setTeamForm(f => ({ ...f, area: e.target.value }))} />
             </div>
             <div className="form-group">
               <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM LEAD</label>
-              <select className="form-control form-select" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }}>
-                <option>Select Lead Engineer...</option>
+              <select className="form-control form-select" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.leadId} onChange={e => setTeamForm(f => ({ ...f, leadId: e.target.value }))}>
+                <option value="">Select Lead Engineer...</option>
                 {users.filter(u => ['Engineer', 'Technician'].includes(u.role)).map(u => (
                   <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                 ))}
@@ -1790,8 +1842,11 @@ export default function UserManagement() {
               <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>MEMBER SELECTION</label>
               <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
                 {users.filter(u => u.role === 'Technician').map(u => (
-                  <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'white'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <input type="checkbox" style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                  <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'background 0.2s', background: teamForm.members.includes(u.id) ? 'white' : 'transparent', border: teamForm.members.includes(u.id) ? '1px solid #3b82f6' : '1px solid transparent' }} onMouseEnter={e => !teamForm.members.includes(u.id) && (e.currentTarget.style.background = 'white')} onMouseLeave={e => !teamForm.members.includes(u.id) && (e.currentTarget.style.background = 'transparent')}>
+                    <input type="checkbox" checked={teamForm.members.includes(u.id)} onChange={e => {
+                      if (e.target.checked) setTeamForm(f => ({ ...f, members: [...f.members, u.id] }))
+                      else setTeamForm(f => ({ ...f, members: f.members.filter(id => id !== u.id) }))
+                    }} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{u.name}</div>
                       <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{u.specialty} · {u.city}</div>
@@ -1809,7 +1864,7 @@ export default function UserManagement() {
           footer={
             <>
               <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Cancel</button>
-              <button className="btn btn-primary" style={{ borderRadius: '16px', padding: '10px 32px', background: '#0f172a' }} onClick={() => { toast('Team configuration updated', 'success'); setModal(null) }}>
+              <button className="btn btn-primary" style={{ borderRadius: '16px', padding: '10px 32px', background: '#0f172a' }} onClick={handleSaveTeam}>
                 Save Changes
               </button>
             </>
@@ -1819,15 +1874,116 @@ export default function UserManagement() {
             <div style={{ fontSize: '12px', fontWeight: 900, color: '#0369a1', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Activity size={16} /> TEAM ACTIVE
             </div>
-            <p style={{ fontSize: '13px', color: '#0c4a6e', margin: '4px 0 0 0', fontWeight: 600 }}>Currently managing <strong>1 active job</strong> in Riyadh Central.</p>
+            <p style={{ fontSize: '13px', color: '#0c4a6e', margin: '4px 0 0 0', fontWeight: 600 }}>Currently managing <strong>{selected?.activeJobs || 0} active jobs</strong> in {selected?.area}.</p>
           </div>
-          <div className="form-group">
-            <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM LEAD</label>
-            <select className="form-control form-select" defaultValue="6" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }}>
-              {users.filter(u => ['Engineer', 'Technician'].includes(u.role)).map(u => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM DESIGNATION</label>
+              <input className="form-control" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.name} onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>OPERATIONAL AREA</label>
+              <input className="form-control" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.area} onChange={e => setTeamForm(f => ({ ...f, area: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>TEAM LEAD</label>
+              <select className="form-control form-select" style={{ borderRadius: '14px', height: '48px', fontWeight: 700 }} value={teamForm.leadId} onChange={e => setTeamForm(f => ({ ...f, leadId: e.target.value }))}>
+                {users.filter(u => ['Engineer', 'Technician'].includes(u.role)).map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', letterSpacing: '0.5px' }}>MEMBER SELECTION</label>
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                {users.filter(u => u.role === 'Technician').map(u => (
+                  <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '8px', borderRadius: '10px', transition: 'background 0.2s', background: teamForm.members.includes(u.id) ? 'white' : 'transparent', border: teamForm.members.includes(u.id) ? '1px solid #3b82f6' : '1px solid transparent' }} onMouseEnter={e => !teamForm.members.includes(u.id) && (e.currentTarget.style.background = 'white')} onMouseLeave={e => !teamForm.members.includes(u.id) && (e.currentTarget.style.background = 'transparent')}>
+                    <input type="checkbox" checked={teamForm.members.includes(u.id)} onChange={e => {
+                      if (e.target.checked) setTeamForm(f => ({ ...f, members: [...f.members, u.id] }))
+                      else setTeamForm(f => ({ ...f, members: f.members.filter(id => id !== u.id) }))
+                    }} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{u.name}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{u.specialty} · {u.city}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'delete_team' && selected && (
+        <Modal title="Disband Team" onClose={() => setModal(null)} size="sm"
+          footer={
+            <>
+              <button className="btn btn-ghost" style={{ borderRadius: '16px' }} onClick={() => setModal(null)}>Abort</button>
+              <button className="btn btn-danger" style={{ borderRadius: '16px', padding: '12px 32px' }} onClick={handleDeleteTeam}>Disband Team</button>
+            </>
+          }
+        >
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ background: '#fef2f2', color: '#ef4444', width: '80px', height: '80px', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transform: 'rotate(5deg)' }}>
+              <Trash2 size={40} />
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 950, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.5px' }}>Confirm Disband?</h3>
+            <p style={{ fontSize: '15px', color: '#64748b', lineHeight: 1.6 }}>
+              This will permanently disband the <strong>{selected.name}</strong>. Members will be returned to the individual specialist pool.
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {modal === 'view_team_activity' && selected && (
+        <Modal title={`${selected.name} - Activity & Jobs`} onClose={() => setModal(null)} size="lg">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '1px', marginBottom: '12px' }}>ACTIVE MISSIONS</div>
+                <div style={{ fontSize: '24px', fontWeight: 950, color: '#10b981' }}>{selected.activeJobs} Jobs</div>
+              </div>
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', letterSpacing: '1px', marginBottom: '12px' }}>TEAM REVENUE (EST.)</div>
+                <div style={{ fontSize: '24px', fontWeight: 950, color: '#0f172a' }}>SAR 42,500</div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginBottom: '16px' }}>RECENT JOBS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {maintenanceRequests.filter(r => r.teamId === selected.id || selected.members.includes(r.technicianId)).slice(0, 5).map(job => (
+                  <div key={job.id} style={{ background: 'white', padding: '20px', borderRadius: '24px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Wrench size={20} color="#64748b" /></div>
+                      <div>
+                        <div style={{ fontWeight: 900, fontSize: '15px' }}>{job.type}</div>
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>{job.client} · {job.id}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: job.status === 'Completed' ? '#10b981' : '#3b82f6' }}>{job.status.toUpperCase()}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{job.date}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginBottom: '16px' }}>TEAM ACTIVITY LOG</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {recentActivity.filter(a => selected.members.some(mId => a.text.includes(users.find(u => u.id === mId)?.name))).slice(0, 5).map(act => (
+                  <div key={act.id} style={{ display: 'flex', gap: '16px', padding: '16px', background: '#f8fafc', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>{act.icon}</div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 800 }}>{act.text}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>{act.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </Modal>
       )}

@@ -29,7 +29,8 @@ import {
   ExternalLink,
   ChevronRight,
   ClipboardList,
-  Layers
+  Layers,
+  DollarSign
 } from 'lucide-react'
 
 const STOCK_META = {
@@ -143,7 +144,7 @@ function CreativeInventoryCard({ part, onView, onAdjust, onRestock }) {
       }}>
         <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', letterSpacing: '1px', marginBottom: '8px' }}>CURRENT INVENTORY</div>
         <div style={{ fontSize: '48px', fontWeight: 950, color: meta.color, lineHeight: 1 }}>{part.qty}</div>
-        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', marginTop: '4px' }}>UNITS QUANTIFIED</div>
+        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', marginTop: '4px' }}>UNITS IN STOCK</div>
         
         <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
           <div style={{ width: `${pct}%`, height: '100%', background: meta.color, borderRadius: '3px', transition: 'width 1s' }} />
@@ -248,13 +249,13 @@ export default function Inventory() {
             color: '#3b82f6',
             letterSpacing: '1px'
           }}>
-            <Layers size={14} /> ASSET GOVERNANCE
+            <Layers size={14} /> PARTS & ASSETS
           </div>
           <h1 className="page-title" style={{ fontSize: '36px', fontWeight: 950, letterSpacing: '-1.5px' }}>
-            Infrastructure Inventory
+            Stock Management
           </h1>
           <p className="page-subtitle" style={{ fontSize: '15px', marginTop: '4px', opacity: 0.7 }}>
-            Managing {spareParts.length} technical assets across logistics nodes.
+            Managing {spareParts.length} parts and equipment in inventory.
           </p>
         </div>
         <div className="page-header-actions" style={{ gap: '16px' }}>
@@ -315,15 +316,15 @@ export default function Inventory() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
         {[
           { label: 'Asset SKU Count', val: spareParts.length, icon: Package, color: '#3B82F6' },
+          { label: 'Total Asset Valuation', val: `SAR ${spareParts.reduce((s, p) => s + (p.price * p.qty), 0).toLocaleString()}`, icon: DollarSign, color: '#10B981', isVal: true },
           { label: 'Optimal Stock', val: inStock, icon: CheckCircle, color: '#10B981' },
           { label: 'Supply Risk', val: lowStock, icon: AlertTriangle, color: '#F59E0B' },
-          { label: 'Critical Depletion', val: outStock, icon: XCircle, color: '#EF4444' },
         ].map((s, idx) => (
           <div key={s.label} className="glass-card" style={{ padding: '24px', borderRadius: '28px', animation: `fadeIn 0.5s ease-out ${idx * 0.05}s both`, display: 'flex', flexDirection: 'column' }}>
             <div style={{ background: `${s.color}15`, color: s.color, width: '44px', height: '44px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
               <s.icon size={22} />
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 950, color: '#0f172a', letterSpacing: '-1px' }}>{s.val}</div>
+            <div style={{ fontSize: '24px', fontWeight: 950, color: '#0f172a', letterSpacing: '-1px' }}>{s.isVal ? s.val : s.val}</div>
             <div style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', marginTop: '4px', flex: 1 }}>{s.label.toUpperCase()}</div>
             <div style={{ marginTop: '16px', fontSize: '11px', fontWeight: 900, color: s.color, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', opacity: 0.8 }}>
               VIEW DETAILS <ArrowRight size={12} />
